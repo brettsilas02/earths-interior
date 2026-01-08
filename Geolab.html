@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Geo-Lab: Earth's Interior Initiative</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Internal Styles for Dark Mode & Stability -->
+    <style>
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background-color: #0f172a; color: white; 
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            overflow: hidden; touch-action: none;
+        }
+        .animate-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+
+    <!-- Lucide Icons -->
+    <script>
+        const ICONS = {
+            Play: '<polygon points="5 3 19 12 5 21 5 3"></polygon>',
+            Activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>',
+            Layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline>',
+            Wind: '<path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>',
+            Database: '<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>',
+            Award: '<circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>',
+            ChevronRight: '<polyline points="9 18 15 12 9 6"></polyline>',
+            CheckCircle: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>',
+            XCircle: '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>',
+            Zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>',
+            Shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
+            Hexagon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>',
+            Lock: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>',
+            Trash2: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>',
+            BrainCircuit: '<path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.97-1.364"/><path d="M19.97 16.636A4 4 0 0 1 18 18"/>',
+            Microscope: '<path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/>',
+            Scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>',
+            Crosshair: '<circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/>',
+            Target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+            AlertTriangle: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+            Droplet: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+            Box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+            Gem: '<path d="M6 3h12l4 6-10 13L2 9Z"/>'
+        };
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- FIREBASE CONFIG (Placeholder - App works offline without it) ---
+        // If you have config, paste it here. If not, Leaderboard saves to local browser memory.
+        const firebaseConfig = {}; 
+        
+        // --- SAFE STORAGE WRAPPER ---
+        const SafeStorage = {
+            getItem: (key) => {
+                try { return localStorage.getItem(key); } catch (e) { return null; }
+            },
+            setItem: (key, value) => {
+                try { localStorage.setItem(key, value); } catch (e) { }
+            },
+            removeItem: (key) => {
+                try { localStorage.removeItem(key); } catch (e) { }
+            }
+        };
+
+        // --- ICONS COMPONENT ---
+        const Icon = ({ name, className }) => {
+            const svgString = ICONS[name] || ICONS['AlertTriangle'];
+            return <div className={className} dangerouslySetInnerHTML={{ __html: svgString }} style={{ display: 'inline-block', verticalAlign: 'middle' }} />;
+        };
+
+        // --- UTILS ---
+        const shuffleArray = (array) => {
+            const newArr = [...array];
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        };
+
+        // --- QUESTION BANK ---
+        const QUESTION_BANK = {
+            game2: [ // SEISMIC
+                { q: "If a seismograph station detects P-waves but no S-waves from an earthquake, what can you infer about the path the waves took?", a: ["They passed through a liquid layer", "They passed through solid granite", "They traveled along the surface only"], correct: "They passed through a liquid layer" },
+                { q: "Why do P-waves refract (bend) when they hit the boundary between the Mantle and the Outer Core?", a: ["Density changes drastically", "The temperature drops", "They hit a solid wall"], correct: "Density changes drastically" },
+                { q: "Scientists use the 'Shadow Zone' to calculate the size of Earth's core. What property of S-waves creates this shadow?", a: ["They cannot shear through liquids", "They are too fast to be recorded", "They reflect off the crust"], correct: "They cannot shear through liquids" },
+                { q: "If the Earth were completely solid rock through and through, what would happen to the seismic waves from an earthquake?", a: ["They would travel in straight lines directly to the other side", "They would stop at the equator", "They would speed up infinitely"], correct: "They would travel in straight lines directly to the other side" },
+                { q: "Why is the inner core solid despite being hotter than the liquid outer core?", a: ["Immense pressure prevents melting", "It is made of a different metal", "The magnetic field freezes it"], correct: "Immense pressure prevents melting" },
+                { q: "You detect a seismic wave moving at 8 km/s. Suddenly it slows to 4 km/s. What likely happened to the material it is traveling through?", a: ["It became less dense or hotter", "It became solid iron", "It entered the vacuum of space"], correct: "It became less dense or hotter" },
+                { q: "Which piece of evidence best supports the claim that the Earth is not hollow?", a: ["Seismic wave transmission times", "Volcanic eruptions", "The depth of the oceans"], correct: "Seismic wave transmission times" },
+                { q: "How do we know the composition of the Core if we cannot drill there?", a: ["Meteorites and density calculations", "Deep sea submarines", "Volcanic magma samples"], correct: "Meteorites and density calculations" },
+            ],
+            game3: [ // MANTLE
+                { q: "If the Earth's interior completely cooled down, what would happen to tectonic plate movement?", a: ["It would stop completely", "It would speed up", "It would reverse direction"], correct: "It would stop completely" },
+                { q: "In a convection current, why does the hot material rise?", a: ["Heat expands volume, lowering density", "Heat increases mass", "Gravity pulls harder on hot things"], correct: "Heat expands volume, lowering density" },
+                { q: "The Asthenosphere is described as 'plastic'. What does this mean in a geological context?", a: ["Solid but capable of flowing slowly", "Made of synthetic polymers", "Completely liquid like water"], correct: "Solid but capable of flowing slowly" },
+                { q: "If you added a cold slab of rock to a tank of hot magma, where would it go?", a: ["Sink to the bottom", "Float on top", "Dissolve instantly"], correct: "Sink to the bottom" },
+                { q: "What is the primary energy source driving the convection currents in the mantle?", a: ["Radioactive decay and residual heat", "The sun's radiation", "Friction from ocean tides"], correct: "Radioactive decay and residual heat" },
+                { q: "Compare the density of a cube of mantle rock near the Core vs. near the Crust.", a: ["Near Core is less dense (hotter)", "Near Core is more dense (pressure)", "They are identical"], correct: "Near Core is less dense (hotter)" },
+                { q: "If convection currents reversed direction, what would happen to a divergent boundary (mid-ocean ridge)?", a: ["It would become a convergent boundary", "It would erupt more lava", "It would freeze"], correct: "It would become a convergent boundary" },
+            ],
+            game4: [ // CRUST
+                { q: "Why does oceanic crust subduct (sink) under continental crust during a collision?", a: ["Oceanic (Basalt) is denser than Continental (Granite)", "Oceanic is thinner", "Continental crust is magnetic"], correct: "Oceanic (Basalt) is denser than Continental (Granite)" },
+                { q: "You find a rock that has large, visible crystals. What does this tell you about how it formed?", a: ["It cooled slowly underground", "It cooled instantly in water", "It is a sedimentary rock"], correct: "It cooled slowly underground" },
+                { q: "Which layer of Earth is thinnest relative to the size of the planet?", a: ["The Crust", "The Mantle", "The Outer Core"], correct: "The Crust" },
+                { q: "If you drilled into the sea floor, what rock type would you hit first?", a: ["Basalt", "Granite", "Sandstone"], correct: "Basalt" },
+                { q: "Why is continental crust generally much older than oceanic crust?", a: ["Oceanic crust is constantly recycled/destroyed", "Continents are protected by mountains", "Oceanic crust dissolves in water"], correct: "Oceanic crust is constantly recycled/destroyed" },
+                { q: "The Moho discontinuity marks the change in speed of seismic waves. What boundary does this represent?", a: ["Crust vs. Mantle", "Mantle vs. Core", "Inner vs. Outer Core"], correct: "Crust vs. Mantle" },
+            ]
+        };
+
+        // --- COMPONENTS ---
+
+        const LogoHeader = () => (
+            <div className="flex flex-col items-center mb-4">
+                <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-2 overflow-hidden border-2 border-slate-700 shadow-inner">
+                    <img 
+                        src="IMG_0024.png" 
+                        alt="Silas Science" 
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML = '<span class="text-3xl font-black text-emerald-500">SS</span>';
+                        }}
+                    />
+                </div>
+                <div className="text-xs font-bold tracking-widest text-slate-500">SILAS SCIENCE DIVISION</div>
+            </div>
+        );
+
+        const InstructionModal = ({ title, objective, controls, onStart }) => (
+            <div className="absolute inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center p-6 text-center animate-in">
+                <div className="bg-slate-800 p-8 rounded-2xl border-2 border-emerald-500 shadow-2xl max-w-md w-full">
+                    <LogoHeader />
+                    <h2 className="text-2xl font-black text-emerald-400 mb-2 uppercase">{title}</h2>
+                    <div className="w-full h-1 bg-slate-700 mb-6"></div>
+                    
+                    <div className="mb-6 text-left">
+                        <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Objective</h3>
+                        <p className="text-slate-200 text-sm leading-relaxed">{objective}</p>
+                    </div>
+
+                    <div className="mb-8 text-left bg-slate-900 p-4 rounded-lg">
+                        <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Controls</h3>
+                        <div className="text-slate-300 text-sm space-y-2 font-mono">
+                            {controls.map((c, i) => (
+                                <div key={i} className="flex items-start gap-2">
+                                    <span className="text-emerald-500">➤</span> {c}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <button 
+                        onClick={onStart}
+                        className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg rounded-lg shadow-lg shadow-emerald-900/50 transition-all active:scale-95 border-none cursor-pointer"
+                    >
+                        START MISSION
+                    </button>
+                </div>
+            </div>
+        );
+
+        const IntroScreen = ({ onStart }) => {
+            const [initials, setInitials] = useState('');
+
+            return (
+                <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-6 font-sans">
+                    <div className="max-w-sm w-full bg-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-800 text-center relative overflow-hidden">
+                        <LogoHeader />
+                        <h1 className="text-3xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">GEO-LAB INITIATIVE</h1>
+                        
+                        <div className="mb-6 text-left bg-slate-800 p-4 rounded-lg border border-slate-700 mt-6">
+                            <p className="text-sm text-slate-300 mb-2 font-bold flex items-center"><Icon name="Shield" className="w-3 h-3 mr-2 text-emerald-500"/> MISSION BRIEFING:</p>
+                            <p className="text-xs text-slate-400 leading-relaxed">
+                                Welcome, Recruit. Access to the Field Simulations requires clearance. 
+                                You must prove your knowledge in the <strong>Project Deep Dive</strong> simulation before being granted Field Agent status.
+                            </p>
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-left text-xs font-bold text-slate-400 mb-2 uppercase">Enter Agent Initials</label>
+                            <input 
+                                type="text" 
+                                maxLength={3}
+                                value={initials}
+                                onChange={(e) => setInitials(e.target.value.toUpperCase())}
+                                className="w-full bg-slate-950 border-2 border-slate-700 text-center text-3xl font-mono p-3 rounded-lg focus:border-emerald-500 focus:outline-none text-white tracking-widest placeholder-slate-700"
+                                placeholder="ABC"
+                            />
+                        </div>
+
+                        <button 
+                            onClick={() => initials.length >= 2 && onStart(initials)}
+                            disabled={initials.length < 2}
+                            className={`w-full py-5 rounded-xl font-black text-xl uppercase tracking-widest transition-all border-none cursor-pointer ${initials.length >= 2 ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-[0_0_30px_rgba(16,185,129,0.6)] ring-2 ring-emerald-300' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}
+                        >
+                            INITIALIZE TRAINING
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const QuizGate = ({ gameId, onPass, onCancel }) => {
+            const [questions, setQuestions] = useState([]);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showResult, setShowResult] = useState(false);
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
+
+            useEffect(() => {
+                const pool = QUESTION_BANK[gameId] || QUESTION_BANK.game2;
+                const shuffledQs = [...pool].sort(() => 0.5 - Math.random()).slice(0, 5);
+                
+                const processed = shuffledQs.map(q => {
+                    return {
+                        q: q.q,
+                        correctStr: q.correct,
+                        a: shuffleArray([...q.a]) 
+                    };
+                });
+
+                setQuestions(processed);
+            }, [gameId]);
+
+            const handleAnswer = (ansStr, index) => {
+                setSelectedAnswer(index);
+                setTimeout(() => {
+                    if (ansStr === questions[currentIndex].correctStr) {
+                        setScore(s => s + 1);
+                    }
+                    
+                    if (currentIndex < 4) {
+                        setCurrentIndex(c => c + 1);
+                        setSelectedAnswer(null);
+                    } else {
+                        setShowResult(true);
+                    }
+                }, 800);
+            };
+
+            const passed = score >= 3;
+
+            if (questions.length === 0) return <div className="text-white text-center p-10">Loading Security Protocol...</div>;
+
+            return (
+                <div className="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
+                    <div className="max-w-xl w-full bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 relative overflow-hidden animate-in">
+                        <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                            <div className="flex items-center gap-2">
+                                <Icon name="Lock" className="w-5 h-5 text-amber-500" />
+                                <span className="font-mono text-amber-500 font-bold">SECURITY CLEARANCE</span>
+                            </div>
+                            <div className="text-slate-500 text-xs">PROTOCOL {gameId.toUpperCase()}</div>
+                        </div>
+
+                        {!showResult ? (
+                            <>
+                                <div className="mb-2 flex justify-between text-xs text-slate-400 uppercase font-bold">
+                                    <span>Question {currentIndex + 1} of 5</span>
+                                    <span>Req: 3/5 Correct</span>
+                                </div>
+                                <div className="w-full bg-slate-800 h-1 rounded mb-6">
+                                    <div className="bg-amber-500 h-1 rounded transition-all" style={{ width: `${((currentIndex)/5)*100}%` }} />
+                                </div>
+
+                                <h3 className="text-lg font-bold text-white mb-6 min-h-[80px]">{questions[currentIndex].q}</h3>
+
+                                <div className="space-y-3">
+                                    {questions[currentIndex].a.map((ans, i) => {
+                                        const isSelected = selectedAnswer === i;
+                                        const isCorrect = ans === questions[currentIndex].correctStr;
+                                        const showColor = isSelected; 
+
+                                        let btnClass = 'bg-slate-800 border-slate-700 hover:bg-slate-750';
+                                        if (showColor && isCorrect) btnClass = 'bg-emerald-900/50 border-emerald-500 text-emerald-200';
+                                        if (showColor && !isCorrect) btnClass = 'bg-red-900/50 border-red-500 text-red-200';
+
+                                        return (
+                                            <button
+                                                key={i}
+                                                onClick={() => selectedAnswer === null && handleAnswer(ans, i)}
+                                                className={`w-full p-4 text-left rounded-lg border transition-all cursor-pointer ${btnClass} ${selectedAnswer !== null && !isSelected ? 'opacity-50' : ''}`}
+                                            >
+                                                <span className="font-mono mr-3 text-slate-500">{String.fromCharCode(65 + i)}.</span>
+                                                {ans}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="text-center py-8">
+                                {passed ? (
+                                    <>
+                                        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Icon name="CheckCircle" className="w-10 h-10 text-emerald-400" />
+                                        </div>
+                                        <h2 className="text-2xl font-bold text-white mb-2">ACCESS GRANTED</h2>
+                                        <p className="text-emerald-400 font-mono mb-6">SCORE: {score}/5</p>
+                                        <button onClick={onPass} className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg border-none cursor-pointer">
+                                            PROCEED TO MISSION
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Icon name="XCircle" className="w-10 h-10 text-red-400" />
+                                        </div>
+                                        <h2 className="text-2xl font-bold text-white mb-2">ACCESS DENIED</h2>
+                                        <p className="text-red-400 font-mono mb-6">SCORE: {score}/5</p>
+                                        <div className="flex gap-2">
+                                            <button onClick={onCancel} className="flex-1 py-3 bg-slate-800 text-slate-400 font-bold rounded-lg hover:bg-slate-700 border-none cursor-pointer">
+                                                MENU
+                                            </button>
+                                            <button onClick={() => { setScore(0); setCurrentIndex(0); setShowResult(false); }} className="flex-1 py-3 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-500 border-none cursor-pointer">
+                                                RETRY
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const MainMenu = ({ user, onSelectGame }) => {
+            return (
+                <div className="min-h-screen bg-slate-950 text-white p-4 pb-20 font-sans">
+                    <header className="flex justify-between items-center mb-8 pt-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full border border-slate-600 overflow-hidden bg-slate-800">
+                                <img src="IMG_0024.png" alt="Logo" className="w-full h-full object-cover" onError={(e) => {e.target.style.display='none'; e.target.parentNode.innerHTML='SS'}} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-emerald-400 tracking-wider">GEO-LAB</h2>
+                                <p className="text-xs text-slate-500 font-mono">AGENT ID: {user.initials}</p>
+                            </div>
+                        </div>
+                        <button onClick={() => onSelectGame('leaderboard')} className="p-2 bg-slate-900 rounded-lg hover:bg-slate-800 border border-slate-800 shadow-sm transition-all group">
+                            <Icon name="Award" className="w-6 h-6 text-yellow-500 group-hover:scale-110 transition-transform" />
+                        </button>
+                    </header>
+
+                    <div className="grid gap-6 max-w-4xl mx-auto md:grid-cols-3">
+                        {/* GAME 1 */}
+                        <div onClick={() => onSelectGame('game1')} className={`relative p-6 rounded-2xl border-2 transition-all cursor-pointer group overflow-hidden md:col-span-3 ${user.game1Complete ? 'bg-slate-900 border-emerald-900' : 'bg-gradient-to-br from-indigo-900 to-slate-900 border-indigo-500 shadow-xl shadow-indigo-500/20'}`}>
+                            <div className="flex justify-between items-start z-10 relative">
+                                <div>
+                                    <div className="inline-flex items-center px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 text-xs font-bold mb-2 tracking-wider">
+                                        <Icon name="Database" className="w-3 h-3 mr-1" /> PHASE 1: INQUIRY
+                                    </div>
+                                    <h3 className="text-2xl font-bold mb-1">Project Deep Dive</h3>
+                                    <p className="text-sm text-slate-400">Drill deep and analyze real-time Earth data.</p>
+                                </div>
+                                {user.game1Complete ? <Icon name="CheckCircle" className="w-8 h-8 text-emerald-500" /> : <Icon name="Play" className="w-8 h-8 text-indigo-400 animate-pulse" />}
+                            </div>
+                            {!user.game1Complete && (
+                                <div className="mt-4 flex gap-2">
+                                    <span className="text-xs bg-black/40 px-2 py-1 rounded text-indigo-200 border border-indigo-500/30">REQUIRED TO UNLOCK ARCADE</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ARCADE GAMES */}
+                        <button disabled={!user.game1Complete} onClick={() => onSelectGame('game2')} className={`p-5 rounded-xl border-b-4 text-left transition-all h-full relative overflow-hidden group ${!user.game1Complete ? 'bg-slate-900/50 border-slate-800 opacity-50 cursor-not-allowed grayscale' : 'bg-slate-800 border-purple-900 hover:border-purple-500 hover:bg-slate-750 active:translate-y-1 active:border-b-0'}`}>
+                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Icon name="BrainCircuit" className="w-16 h-16" />
+                            </div>
+                            <Icon name="Activity" className={`w-8 h-8 mb-3 ${user.game1Complete ? 'text-purple-400' : 'text-slate-600'}`} />
+                            <h4 className="font-bold text-lg text-slate-200">Seismic Sorter</h4>
+                            <p className="text-xs text-slate-500 mt-1">Classification: P vs S Waves</p>
+                        </button>
+
+                        <button disabled={!user.game1Complete} onClick={() => onSelectGame('game3')} className={`p-5 rounded-xl border-b-4 text-left transition-all h-full relative overflow-hidden group ${!user.game1Complete ? 'bg-slate-900/50 border-slate-800 opacity-50 cursor-not-allowed grayscale' : 'bg-slate-800 border-orange-900 hover:border-orange-500 hover:bg-slate-750 active:translate-y-1 active:border-b-0'}`}>
+                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Icon name="Wind" className="w-16 h-16" />
+                            </div>
+                            <Icon name="Wind" className={`w-8 h-8 mb-3 ${user.game1Complete ? 'text-orange-400' : 'text-slate-600'}`} />
+                            <h4 className="font-bold text-lg text-slate-200">Mantle Surfer</h4>
+                            <p className="text-xs text-slate-500 mt-1">Convection & Density</p>
+                        </button>
+
+                        <button disabled={!user.game1Complete} onClick={() => onSelectGame('game4')} className={`p-5 rounded-xl border-b-4 text-left transition-all h-full relative overflow-hidden group ${!user.game1Complete ? 'bg-slate-900/50 border-slate-800 opacity-50 cursor-not-allowed grayscale' : 'bg-slate-800 border-blue-900 hover:border-blue-500 hover:bg-slate-750 active:translate-y-1 active:border-b-0'}`}>
+                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Icon name="Layers" className="w-16 h-16" />
+                            </div>
+                            <Icon name="Layers" className={`w-8 h-8 mb-3 ${user.game1Complete ? 'text-blue-400' : 'text-slate-600'}`} />
+                            <h4 className="font-bold text-lg text-slate-200">Crust Collector</h4>
+                            <p className="text-xs text-slate-500 mt-1">Mineral Identification</p>
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- GAME 1: DEEP DIVE ---
+        const Game1 = ({ onComplete, onExit }) => {
+            const [showInstructions, setShowInstructions] = useState(true);
+            const [depth, setDepth] = useState(0);
+            const [phase, setPhase] = useState(0);
+            const [feedback, setFeedback] = useState(null);
+
+            const getTemp = (d) => Math.min(6000, Math.floor(d * 1.5));
+            const getPressure = (d) => Math.min(360, Math.floor(d * 0.1));
+            
+            const handleDrill = () => {
+                setDepth(prev => {
+                    const next = prev + 50;
+                    if (prev < 100 && next >= 100 && phase === 0) { setPhase(1); return 100; }
+                    if (prev < 1500 && next >= 1500 && phase === 2) { setPhase(3); return 1500; }
+                    if (prev < 2500 && next >= 2500 && phase === 4) { setPhase(5); return 2500; }
+                    if (next >= 3000) { setPhase(6); return 3000; }
+                    return next;
+                });
+            };
+
+            const QuizModal = ({ question, options, correctIndex, explanation, nextPhase }) => {
+                const checkAnswer = (idx) => {
+                    if (idx === correctIndex) {
+                        setFeedback(explanation);
+                        setTimeout(() => { setFeedback(null); setPhase(nextPhase); }, 3000);
+                    } else {
+                        setFeedback("Incorrect. Analyze the data trend again.");
+                        setTimeout(() => setFeedback(null), 1500);
+                    }
+                };
+
+                return (
+                    <div className="absolute inset-0 bg-black/90 flex items-center justify-center p-6 z-50">
+                        <div className="bg-slate-800 p-6 rounded-xl border border-indigo-500 max-w-lg w-full shadow-2xl">
+                            <h3 className="text-indigo-400 font-bold mb-4 flex items-center"><Icon name="Activity" className="w-4 h-4 mr-2"/> DATA ANOMALY DETECTED</h3>
+                            <p className="text-white text-lg mb-6 font-medium">{question}</p>
+                            <div className="grid gap-3">
+                                {options.map((opt, i) => (
+                                    <button key={i} onClick={() => checkAnswer(i)} className="p-4 bg-slate-700 hover:bg-indigo-600 rounded text-left text-sm font-bold text-slate-200">
+                                        {opt}
+                                    </button>
+                                ))}
+                            </div>
+                            {feedback && <div className="mt-4 p-3 bg-indigo-900/50 text-indigo-200 rounded border border-indigo-500/50">{feedback}</div>}
+                        </div>
+                    </div>
+                );
+            };
+
+            if (showInstructions) {
+                return <InstructionModal title="Project Deep Dive" objective="Simulate a drilling operation to the center of the Earth. Monitor temperature and pressure data. Stop at key boundaries to answer inquiry questions based on your readings." controls={["HOLD 'DRILL' to descend", "WATCH Graphs for spikes", "ANSWER questions to proceed"]} onStart={() => setShowInstructions(false)} />;
+            }
+
+            return (
+                <div className="fixed inset-0 bg-black text-white flex flex-col font-mono">
+                    <div className="p-4 bg-slate-900 border-b border-slate-800 flex justify-between items-center">
+                        <h2 className="text-indigo-400 font-bold flex items-center"><Icon name="Database" className="mr-2" /> DEEP BOREHOLE SIMULATION</h2>
+                        <button onClick={onExit} className="text-xs text-slate-500 hover:text-white uppercase tracking-widest">Abort Mission</button>
+                    </div>
+                    <div className="flex-1 relative flex">
+                        <div className="w-1/3 border-r border-slate-800 p-6 flex flex-col items-center justify-center bg-slate-900/50">
+                            <div className="text-center mb-6">
+                                <div className="text-5xl font-bold mb-2 text-white">{depth}</div>
+                                <div className="text-xs text-slate-500 uppercase tracking-widest">Depth (km)</div>
+                            </div>
+                            <button 
+                                onMouseDown={() => { const interval = setInterval(handleDrill, 50); window.drillInterval = interval; }}
+                                onMouseUp={() => { clearInterval(window.drillInterval); }}
+                                onMouseLeave={() => { clearInterval(window.drillInterval); }}
+                                onTouchStart={(e) => { e.preventDefault(); const interval = setInterval(handleDrill, 50); window.drillInterval = interval; }}
+                                onTouchEnd={(e) => { e.preventDefault(); clearInterval(window.drillInterval); }}
+                                className="w-32 h-32 rounded-full bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_30px_rgba(79,70,229,0.5)] border-4 border-indigo-400 flex items-center justify-center active:scale-95 transition-all select-none"
+                            >
+                                <span className="font-bold text-xl pointer-events-none">HOLD<br/>TO<br/>DRILL</span>
+                            </button>
+                        </div>
+                        <div className="w-2/3 p-6 space-y-6">
+                            <div>
+                                <div className="flex justify-between text-xs text-slate-400 mb-1"><span>TEMPERATURE</span><span>{getTemp(depth)}°C</span></div>
+                                <div class="h-4 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-orange-400 to-red-600 transition-all duration-300" style={{ width: `${(getTemp(depth) / 6000) * 100}%` }} /></div>
+                            </div>
+                            <div>
+                                <div className="flex justify-between text-xs text-slate-400 mb-1"><span>PRESSURE</span><span>{getPressure(depth)} GPa</span></div>
+                                <div class="h-4 bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-blue-400 to-purple-600 transition-all duration-300" style={{ width: `${(getPressure(depth) / 360) * 100}%` }} /></div>
+                            </div>
+                            <div className="mt-8 p-4 bg-black/50 border border-slate-700 rounded h-48 overflow-y-auto font-mono text-xs text-green-400">
+                                <p>{">"} INITIALIZING SENSORS...</p><p>{">"} SURFACE: 20°C</p>
+                                {depth > 50 && <p>{">"} ENTERING CRUST. SILICON DETECTED.</p>}
+                                {depth > 100 && <p>{">"} CRUST BREACHED. DENSITY INCREASING.</p>}
+                                {depth > 1500 && <p>{">"} LITHOSPHERE PASSED. ROCK IS PLASTIC.</p>}
+                                {depth > 2500 && <p>{">"} OUTER CORE APPROACHING. MAGNETIC FLUX SPIKE.</p>}
+                            </div>
+                        </div>
+                        {phase === 1 && <QuizModal question="Drill Alert: We just passed 40km. The rock composition has shifted from lighter granites to dense silicates rich in Magnesium. Why?" options={["We hit a pocket of gold", "We have crossed the Moho into the Mantle", "The drill bit is melting"]} correctIndex={1} explanation="Correct. The Mohorovičić discontinuity (Moho) marks the boundary where crustal rock meets the denser mantle." nextPhase={2} />}
+                        {phase === 3 && <QuizModal question="Seismic Feedback: S-Waves generated by the drill have ceased transmission in the layer ahead. P-Waves have slowed down significantly. What does this imply?" options={["The layer ahead is a vacuum", "The layer ahead is liquid metal", "The drill is broken"]} correctIndex={1} explanation="Correct. Shear waves (S-Waves) cannot shear through liquid. Their disappearance proves the Outer Core is liquid." nextPhase={4} />}
+                        {phase === 5 && <QuizModal question="Core Anomaly: We are at the center. Temperature exceeds 5000°C, yet the iron here is solid crystal. Which force overrides the temperature to keep it solid?" options={["Extreme Gravity", "Magnetic Repulsion", "Immense Pressure"]} correctIndex={2} explanation="Excellent. The pressure of the entire planet crushing down prevents the iron atoms from spreading out into a liquid state." nextPhase={6} />}
+                        {phase === 6 && (
+                            <div className="absolute inset-0 bg-emerald-900/90 flex items-center justify-center p-6 z-50">
+                                <div className="text-center">
+                                    <Icon name="CheckCircle" className="w-20 h-20 text-emerald-400 mx-auto mb-4" />
+                                    <h2 className="text-3xl font-bold text-white mb-2">TRAINING COMPLETE</h2>
+                                    <p className="text-emerald-200 mb-6">You have successfully mapped Earth's interior.</p>
+                                    <button onClick={onComplete} className="px-8 py-3 bg-emerald-500 text-white font-bold rounded-full hover:bg-emerald-400 shadow-lg shadow-emerald-500/30">ENTER ARCADE</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- GAME 2: SEISMIC SORTER ---
+        const Game2 = ({ onGameOver, onExit }) => {
+            const [showInstructions, setShowInstructions] = useState(true);
+            const [score, setScore] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(60);
+            const [items, setItems] = useState([]);
+            const [feedback, setFeedback] = useState(null);
+            const containerRef = useRef(null);
+            const [draggedItem, setDraggedItem] = useState(null);
+            const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+            const draggedItemRef = useRef(null);
+
+            useEffect(() => { draggedItemRef.current = draggedItem; }, [draggedItem]);
+
+            useEffect(() => {
+                if (showInstructions) return;
+                const timerInterval = setInterval(() => {
+                    setTimeLeft(t => { if(t <= 1) { clearInterval(timerInterval); onGameOver(score); return 0; } return t - 1; })
+                }, 1000);
+
+                const spawner = setInterval(() => {
+                    const maxItems = 5 + Math.floor(score / 500);
+                    if(items.length > maxItems) return; 
+                    const types = [{ id: Date.now(), name: "Magma", type: "Liquid" }, { id: Date.now()+1, name: "Outer Core", type: "Liquid" }, { id: Date.now()+2, name: "Granite", type: "Solid" }, { id: Date.now()+3, name: "Inner Core", type: "Solid" }, { id: Date.now()+4, name: "Basalt", type: "Solid" }, { id: Date.now()+5, name: "Mantle Rock", type: "Solid" }];
+                    const newItem = types[Math.floor(Math.random() * types.length)];
+                    const speedMult = 1 + (score / 1500);
+                    setItems(prev => [...prev, { ...newItem, x: Math.random()*60+20, y: Math.random()*40+10, vx: (Math.random()-0.5)*0.8*speedMult, vy: (Math.random()-0.5)*0.8*speedMult, spawnTime: Date.now() }]);
+                }, Math.max(800, 1500 - (score / 2)));
+
+                const animator = setInterval(() => {
+                    const now = Date.now();
+                    setItems(prev => {
+                        const alive = prev.filter(item => (now - (item.spawnTime || 0)) < 3000);
+                        return alive.map(item => {
+                            if (item.id === draggedItemRef.current) return item;
+                            let nx = item.x + item.vx; let ny = item.y + item.vy;
+                            if(nx < 10 || nx > 90) item.vx *= -1; if(ny < 10 || ny > 60) item.vy *= -1;
+                            return { ...item, x: nx, y: ny };
+                        });
+                    });
+                }, 50);
+
+                return () => { clearInterval(timerInterval); clearInterval(spawner); clearInterval(animator); };
+            }, [showInstructions, score, items.length]);
+
+            const handleTouchStart = (e, id) => { e.preventDefault(); setDraggedItem(id); const c = e.touches ? e.touches[0] : e; setDragPos({ x: c.clientX, y: c.clientY }); };
+            const handleTouchMove = (e) => { if (draggedItem === null) return; const c = e.touches ? e.touches[0] : e; setDragPos({ x: c.clientX, y: c.clientY }); };
+            const handleTouchEnd = () => {
+                if (draggedItem === null || !containerRef.current) { setDraggedItem(null); return; }
+                const item = items.find(i => i.id === draggedItem);
+                if (item) {
+                    const rect = containerRef.current.getBoundingClientRect();
+                    const relX = (dragPos.x - rect.left) / rect.width;
+                    const relY = (dragPos.y - rect.top) / rect.height;
+                    if (relY > 0.6) {
+                        let points = 0, msg = "", correct = false;
+                        if (relX < 0.5) { if (item.type === 'Liquid') { points = 150; msg = "Correct!"; correct = true; } else { points = -20; msg = "Wrong!"; correct = false; } } 
+                        else { if (item.type === 'Solid') { points = 150; msg = "Correct!"; correct = true; } else { points = -50; msg = "Absorbed!"; correct = false; } }
+                        setScore(s => Math.max(0, s + points)); setItems(prev => prev.filter(i => i.id !== draggedItem));
+                        setFeedback(msg); setTimeout(() => setFeedback(null), 1000);
+                    }
+                }
+                setDraggedItem(null);
+            };
+
+            if (showInstructions) { return <InstructionModal title="Seismic Sorter" objective="Drag floating samples to the correct Zone. HURRY! Samples disappear after 3 seconds!" controls={["LIQUIDS (e.g. Magma) -> P-WAVE (Left)", "SOLIDS (e.g. Granite) -> S-WAVE (Right)"]} onStart={() => setShowInstructions(false)} /> }
+
+            return (
+                <div className="fixed inset-0 bg-slate-900 flex flex-col overflow-hidden touch-none font-mono text-white select-none" onMouseMove={handleTouchMove} onTouchMove={handleTouchMove} onMouseUp={handleTouchEnd} onTouchEnd={handleTouchEnd} ref={containerRef}> 
+                    <div className="p-2 bg-slate-800 flex justify-between items-center z-10 border-b border-purple-900">
+                        <h2 className="font-bold flex items-center gap-2"><Icon name="Activity" className="text-purple-400"/> SEISMIC SORTER</h2>
+                        <div className="text-xl text-purple-400">{score} PTS</div>
+                        <div className="text-xl font-bold">{timeLeft}s</div>
+                    </div>
+                    <div className="relative flex-1 bg-slate-950 overflow-hidden">
+                        <div className="absolute bottom-0 left-0 w-1/2 h-[40%] bg-purple-900/20 border-t-4 border-r-2 border-purple-500/50 flex flex-col items-center justify-center"><div className="text-4xl font-black text-purple-500/30 mb-2">P-WAVE</div><div className="text-xs text-purple-300 uppercase font-bold">LIQUIDS HERE</div></div>
+                        <div className="absolute bottom-0 right-0 w-1/2 h-[40%] bg-pink-900/20 border-t-4 border-l-2 border-pink-500/50 flex flex-col items-center justify-center"><div className="text-4xl font-black text-pink-500/30 mb-2">S-WAVE</div><div className="text-xs text-pink-300 uppercase font-bold">SOLIDS HERE</div></div>
+                        {items.map(item => {
+                            const age = Date.now() - (item.spawnTime || 0); const isDying = age > 2000;
+                            return (
+                                <div key={item.id} onMouseDown={(e) => handleTouchStart(e, item.id)} onTouchStart={(e) => handleTouchStart(e, item.id)} className={`absolute w-24 h-24 flex flex-col items-center justify-center shadow-lg cursor-grab active:cursor-grabbing border-2 backdrop-blur-sm transition-transform rounded-full ${isDying ? 'bg-red-900/40 border-red-500 text-red-200 animate-pulse' : 'bg-slate-800 border-slate-500 text-slate-200'} ${draggedItem === item.id ? 'scale-125 z-50 ring-4 ring-emerald-400' : 'z-20'}`} style={{ left: draggedItem === item.id ? dragPos.x - 48 : `${item.x}%`, top: draggedItem === item.id ? dragPos.y - 48 : `${item.y}%`, position: draggedItem === item.id ? 'fixed' : 'absolute' }}>
+                                    <Icon name="Gem" className={`w-8 h-8 mb-1 opacity-80 ${isDying ? 'text-red-400' : 'text-emerald-500'}`} /><div className="font-bold text-xs text-center px-1 leading-tight">{item.name}</div>
+                                </div>
+                            )
+                        })}
+                        {feedback && <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 font-black text-xl px-6 py-4 rounded-xl bg-black/80 backdrop-blur z-50 animate-bounce text-center border-2 border-white/10 whitespace-nowrap ${feedback.includes("Wrong") || feedback.includes("Absorbed") ? 'text-red-500' : 'text-emerald-400'}`}>{feedback}</div>}
+                    </div>
+                    <div className="absolute top-16 left-0 right-0 text-center pointer-events-none opacity-50"><span className="bg-black/50 px-3 py-1 rounded text-xs">DRAG ORBS TO CORRECT ZONE</span></div>
+                </div>
+            );
+        };
+
+        // --- GAME 3: MANTLE SURFER ---
+        const Game3 = ({ onGameOver, onExit }) => {
+            const [showInstructions, setShowInstructions] = useState(true);
+            const [score, setScore] = useState(0);
+            const [playing, setPlaying] = useState(false);
+            const [density, setDensity] = useState(50);
+            const birdY = useRef(50);
+            const requestRef = useRef();
+            const obstacles = useRef([]);
+
+            const loop = () => {
+                if (!playing) return;
+                const speed = (density - 50) / 25; 
+                birdY.current = Math.max(0, Math.min(100, birdY.current + speed));
+                if (obstacles.current.length === 0 || obstacles.current[obstacles.current.length-1].x < 60) {
+                    if (Math.random() < 0.02) obstacles.current.push({ x: 100, gapY: Math.random() * 40 + 30, gapSize: 35 });
+                }
+                obstacles.current.forEach(obs => { obs.x -= 0.5; });
+                obstacles.current = obstacles.current.filter(obs => obs.x > -20);
+                const crash = obstacles.current.some(obs => {
+                    const inX = obs.x < 20 && obs.x > 10;
+                    if (inX) { return birdY.current < (obs.gapY - obs.gapSize/2) || birdY.current > (obs.gapY + obs.gapSize/2); }
+                    return false;
+                });
+                if (crash) { setPlaying(false); onGameOver(score); return; }
+                setScore(s => s + 1);
+                requestRef.current = requestAnimationFrame(loop);
+            };
+
+            useEffect(() => { if (playing) requestRef.current = requestAnimationFrame(loop); return () => cancelAnimationFrame(requestRef.current); }, [playing, density]);
+
+            if (showInstructions) { return <InstructionModal title="Mantle Surfer" objective="Navigate the Convection Currents of the Mantle. You must change your density to avoid the cold rock slabs." controls={["HOLD BUTTON = Heat Up (Less Dense, You Rise)", "RELEASE BUTTON = Cool Down (More Dense, You Sink)"]} onStart={() => setShowInstructions(false)} /> }
+
+            return (
+                <div className="fixed inset-0 bg-slate-900 flex flex-col font-mono text-white select-none touch-none">
+                    <div className="p-2 bg-slate-800 flex justify-between items-center z-10 border-b border-orange-900">
+                        <h2 className="font-bold flex items-center gap-2"><Icon name="Wind" className="text-orange-500"/> MANTLE SURFER</h2>
+                        <div className="text-xl text-orange-400">{score}</div>
+                        <button onClick={onExit} className="text-xs text-slate-400">EXIT</button>
+                    </div>
+                    <div className="flex-1 relative bg-gradient-to-b from-stone-800 via-orange-900 to-red-900 overflow-hidden">
+                        {!playing && <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/60"><button onClick={() => { birdY.current=50; obstacles.current=[]; setScore(0); setPlaying(true); }} className="px-8 py-4 bg-orange-600 rounded-full font-bold text-xl animate-bounce shadow-lg shadow-orange-500/50">START CYCLE</button></div>}
+                        <div className="absolute top-2 left-2 text-xs text-stone-400">LITHOSPHERE (COLD)</div><div className="absolute bottom-2 left-2 text-xs text-red-400">OUTER CORE (HOT)</div>
+                        <div className="absolute left-[15%] w-10 h-10 rounded-full shadow-lg transition-transform duration-75 flex items-center justify-center" style={{ top: `${birdY.current}%`, backgroundColor: density < 50 ? '#fbbf24' : '#7f1d1d', boxShadow: density < 50 ? '0 0 20px #fbbf24' : 'none', border: '2px solid rgba(255,255,255,0.2)' }}><div className="text-[10px] text-center font-bold text-white/80">{density < 50 ? 'HOT' : 'COLD'}</div></div>
+                        {obstacles.current.map((obs, i) => (<React.Fragment key={i}><div className="absolute top-0 bg-stone-700 border-b-4 border-stone-600 rounded-b-lg" style={{ left: `${obs.x}%`, width: '10%', height: `${obs.gapY - obs.gapSize/2}%` }} /><div className="absolute bottom-0 bg-stone-700 border-t-4 border-stone-600 rounded-t-lg" style={{ left: `${obs.x}%`, width: '10%', height: `${100 - (obs.gapY + obs.gapSize/2)}%` }} /></React.Fragment>))}
+                        <div className="absolute bottom-10 right-10 flex flex-col gap-2 z-30"><button onMouseDown={() => setDensity(20)} onMouseUp={() => setDensity(80)} onTouchStart={(e) => { e.preventDefault(); setDensity(20); }} onTouchEnd={(e) => { e.preventDefault(); setDensity(80); }} className="w-28 h-28 rounded-full bg-orange-500/90 border-4 border-orange-300 shadow-2xl flex items-center justify-center font-bold text-center active:bg-orange-400 active:scale-95 transition-all"><span className="text-lg drop-shadow-md">HOLD<br/>TO<br/>RISE</span></button></div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- GAME 4: CRUST COLLECTOR ---
+        const Game4 = ({ onGameOver, onExit }) => {
+            const [showInstructions, setShowInstructions] = useState(true);
+            const [score, setScore] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(45);
+            const [target, setTarget] = useState('Oceanic');
+            const [grid, setGrid] = useState([]);
+
+            useEffect(() => {
+                if (showInstructions) return;
+                const rocks = []; for(let i=0; i<16; i++) rocks.push({ id: i, type: Math.random() > 0.5 ? 'Basalt' : 'Granite' });
+                setGrid(rocks);
+                const timer = setInterval(() => { setTimeLeft(t => { if(t <= 1) { clearInterval(timer); onGameOver(score); return 0; } return t - 1; }); }, 1000);
+                return () => clearInterval(timer);
+            }, [showInstructions, score]);
+
+            useEffect(() => { if (showInstructions) return; if (timeLeft % 10 === 0 && timeLeft !== 45) { setTarget(prev => prev === 'Oceanic' ? 'Continental' : 'Oceanic'); } }, [timeLeft, showInstructions]);
+
+            const handleCollect = (rock) => {
+                const isCorrect = (target === 'Oceanic' && rock.type === 'Basalt') || (target === 'Continental' && rock.type === 'Granite');
+                if (isCorrect) { setScore(s => s + 150); setGrid(prev => prev.map(r => r.id === rock.id ? { ...r, type: Math.random() > 0.5 ? 'Basalt' : 'Granite' } : r)); } 
+                else { setScore(s => Math.max(0, s - 50)); }
+            };
+
+            if (showInstructions) { return <InstructionModal title="Crust Collector" objective="Collect rock samples that match the CURRENT requested Crust Type." controls={["Oceanic Crust = BASALT (Dark / Fine Grained)", "Continental Crust = GRANITE (Light / Coarse Grained)"]} onStart={() => setShowInstructions(false)} /> }
+
+            return (
+                <div className="fixed inset-0 bg-stone-900 flex flex-col font-mono text-white touch-none">
+                    <div className="p-4 bg-stone-800 flex justify-between items-center z-10 border-b border-stone-700"><h2 className="font-bold flex items-center gap-2"><Icon name="Layers" className="text-blue-400"/> CRUST COLLECTOR</h2><div className="text-2xl font-bold">{timeLeft}s</div><button onClick={onExit} className="text-xs text-slate-400">EXIT</button></div>
+                    <div className="bg-slate-900 p-4 text-center shadow-lg z-10"><p className="text-slate-400 text-sm">CURRENT TARGET</p><h3 className={`text-3xl font-black uppercase tracking-tighter ${target === 'Oceanic' ? 'text-blue-400' : 'text-stone-300'}`}>{target} CRUST</h3><p className="text-xs text-slate-500 mt-1">{target === 'Oceanic' ? '(Look for: Dark, Fine-Grained BASALT)' : '(Look for: Light, Coarse GRANITE)'}</p></div>
+                    <div className="flex-1 p-4 grid grid-cols-4 gap-4 overflow-y-auto">{grid.map(rock => (<button key={rock.id} onClick={() => handleCollect(rock)} onTouchStart={(e) => e.preventDefault()} className={`rounded-xl flex flex-col items-center justify-center p-2 shadow-lg active:scale-90 transition-transform duration-75 ${rock.type === 'Basalt' ? 'bg-slate-800 border-2 border-slate-700' : 'bg-stone-300 border-2 border-stone-400'}`}>{rock.type === 'Basalt' ? (<div className="w-12 h-12 bg-black rounded-full mb-2 opacity-80 ring-2 ring-slate-700" />) : (<div className="w-12 h-12 bg-pink-200 rounded mb-2 opacity-80 ring-2 ring-stone-400" style={{backgroundImage: 'radial-gradient(circle, #000 1px, transparent 1px)', backgroundSize: '5px 5px'}} />)}<span className={`text-[10px] font-bold uppercase ${rock.type === 'Basalt' ? 'text-slate-400' : 'text-stone-800'}`}>{rock.type}</span></button>))}</div>
+                </div>
+            );
+        };
+
+        // --- LEADERBOARD ---
+        const Leaderboard = ({ onBack, appId }) => {
+            const [scores, setScores] = useState([]);
+            const [filter, setFilter] = useState('game2');
+            const [adminMode, setAdminMode] = useState(false);
+            const [adminClicks, setAdminClicks] = useState(0);
+
+            useEffect(() => {
+                const k = 'geolab_scores_' + filter;
+                const local = localStorage.getItem(k);
+                if(local) setScores(JSON.parse(local)); else setScores([]);
+            }, [filter]);
+
+            const handleTitleClick = () => { setAdminClicks(p => p + 1); if (adminClicks + 1 >= 3) { const pin = prompt("ENTER TEACHER ACCESS CODE:"); if (pin === 'CLOVER') setAdminMode(true); setAdminClicks(0); } };
+            const clearLeaderboard = () => { if (confirm("WARNING: This will delete ALL scores for this game. Are you sure?")) { localStorage.removeItem('geolab_scores_' + filter); setScores([]); } };
+
+            return (
+                <div className="fixed inset-0 bg-slate-900 text-white flex flex-col p-6 font-sans">
+                    <div className="flex justify-between items-center mb-6"><h2 onClick={handleTitleClick} className="text-2xl font-bold text-yellow-400 flex items-center gap-2 select-none cursor-pointer"><Icon name="Award" /> TOP AGENTS {adminMode && <span className="text-xs bg-red-600 text-white px-2 py-1 rounded ml-2">ADMIN MODE</span>}</h2><button onClick={onBack} className="p-2 bg-slate-800 rounded">Back</button></div>
+                    <div className="flex gap-2 mb-6">{['game2', 'game3', 'game4'].map(g => (<button key={g} onClick={() => setFilter(g)} className={`flex-1 py-3 rounded-lg text-sm font-bold uppercase transition-all ${filter === g ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-800 text-slate-400'}`}>{g === 'game2' ? 'Seismic' : g === 'game3' ? 'Mantle' : 'Crust'}</button>))}</div>
+                    {adminMode && (<div className="mb-4 p-4 bg-red-900/20 border border-red-500 rounded-lg flex justify-between items-center"><span className="text-red-300 font-bold text-sm">TEACHER CONTROLS</span><button onClick={clearLeaderboard} className="flex items-center gap-2 bg-red-600 px-3 py-1 rounded text-white text-xs font-bold hover:bg-red-500"><Icon name="Trash2" className="w-3 h-3" /> CLEAR SCORES</button></div>)}
+                    <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 flex-1 overflow-y-auto"><table className="w-full text-left"><thead className="bg-slate-900 text-slate-400 text-xs uppercase sticky top-0"><tr><th class="p-4">Rank</th><th class="p-4">Agent</th><th class="p-4 text-right">Score</th>{adminMode && <th class="p-4 text-right">Date</th>}</tr></thead><tbody>{scores.map((s, i) => (<tr key={i} className="border-t border-slate-700 hover:bg-slate-750"><td className="p-4 font-mono text-emerald-400">#{i + 1}</td><td className="p-4 font-bold">{s.initials}</td><td className="p-4 text-right font-mono">{s.score}</td>{adminMode && <td className="p-4 text-right text-xs text-slate-500">{s.date}</td>}</tr>))}{scores.length === 0 && (<tr><td colSpan={4} className="p-8 text-center text-slate-500">No data yet. Be the first!</td></tr>)}</tbody></table></div>
+                    {!adminMode && <div className="mt-4 text-center text-slate-600 text-[10px]">TAP TITLE 3X FOR TEACHER ACCESS</div>}
+                </div>
+            );
+        };
+
+        // --- APP ROOT ---
+        const GeoLabApp = () => {
+            const [user, setUser] = useState(null);
+            const [view, setView] = useState('intro');
+            const [targetGame, setTargetGame] = useState(null);
+            const [authUser, setAuthUser] = useState(null);
+
+            useEffect(() => { const saved = localStorage.getItem('geolab_user'); if (saved) { setUser(JSON.parse(saved)); setView('menu'); } }, []);
+
+            const handleStart = (initials) => { const newUser = { uid: 'guest_' + Date.now(), initials, game1Complete: false }; setUser(newUser); localStorage.setItem('geolab_user', JSON.stringify(newUser)); setView('menu'); };
+            const updateProfile = (updates) => { if (!user) return; const updated = { ...user, ...updates }; setUser(updated); localStorage.setItem('geolab_user', JSON.stringify(updated)); };
+
+            const submitScore = async (gameId, score) => {
+                const entry = { initials: user.initials, score: score, uid: user.uid, date: new Date().toLocaleDateString() };
+                const k = 'geolab_scores_' + gameId;
+                const current = JSON.parse(localStorage.getItem(k) || '[]');
+                current.push(entry); current.sort((a,b) => b.score - a.score);
+                localStorage.setItem(k, JSON.stringify(current.slice(0, 50)));
+                setView('leaderboard');
+            };
+
+            const handleGameSelect = (g) => { if (['game2', 'game3', 'game4'].includes(g)) { setTargetGame(g); setView('quiz_gate'); } else { setView(g); } };
+
+            if (!user || view === 'intro') return <IntroScreen onStart={handleStart} />;
+            if (view === 'quiz_gate' && targetGame) return <QuizGate gameId={targetGame} onPass={() => setView(targetGame)} onCancel={() => setView('menu')} />;
+            if (view === 'game1') return <Game1 onComplete={() => { updateProfile({ game1Complete: true }); setView('menu'); }} onExit={() => setView('menu')} />;
+            if (view === 'game2') return <Game2 onGameOver={(s) => submitScore('game2', s)} onExit={() => setView('menu')} />;
+            if (view === 'game3') return <Game3 onGameOver={(s) => submitScore('game3', s)} onExit={() => setView('menu')} />;
+            if (view === 'game4') return <Game4 onGameOver={(s) => submitScore('game4', s)} onExit={() => setView('menu')} />;
+            if (view === 'leaderboard') return <Leaderboard onBack={() => setView('menu')} appId={appId} />;
+
+            return <MainMenu user={user} onSelectGame={handleGameSelect} />;
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<GeoLabApp />);
+    </script>
+</body>
+</html>
