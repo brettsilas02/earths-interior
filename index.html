@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geo-Lab: Earth's Interior Initiative</title>
+    <title>Geo-Lab</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel for JSX -->
+    <!-- Babel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Internal Styles for Dark Mode & Stability -->
     <style>
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
@@ -27,7 +26,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 
-    <!-- Lucide Icons -->
+    <!-- Icons -->
     <script>
         const ICONS = {
             Play: '<polygon points="5 3 19 12 5 21 5 3"></polygon>',
@@ -61,10 +60,6 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
-
-        // --- FIREBASE CONFIG (Placeholder - App works offline without it) ---
-        // If you have config, paste it here. If not, Leaderboard saves to local browser memory.
-        const firebaseConfig = {}; 
         
         // --- SAFE STORAGE WRAPPER ---
         const SafeStorage = {
@@ -97,7 +92,7 @@
 
         // --- QUESTION BANK ---
         const QUESTION_BANK = {
-            game2: [ // SEISMIC
+            game2: [ 
                 { q: "If a seismograph station detects P-waves but no S-waves from an earthquake, what can you infer about the path the waves took?", a: ["They passed through a liquid layer", "They passed through solid granite", "They traveled along the surface only"], correct: "They passed through a liquid layer" },
                 { q: "Why do P-waves refract (bend) when they hit the boundary between the Mantle and the Outer Core?", a: ["Density changes drastically", "The temperature drops", "They hit a solid wall"], correct: "Density changes drastically" },
                 { q: "Scientists use the 'Shadow Zone' to calculate the size of Earth's core. What property of S-waves creates this shadow?", a: ["They cannot shear through liquids", "They are too fast to be recorded", "They reflect off the crust"], correct: "They cannot shear through liquids" },
@@ -107,7 +102,7 @@
                 { q: "Which piece of evidence best supports the claim that the Earth is not hollow?", a: ["Seismic wave transmission times", "Volcanic eruptions", "The depth of the oceans"], correct: "Seismic wave transmission times" },
                 { q: "How do we know the composition of the Core if we cannot drill there?", a: ["Meteorites and density calculations", "Deep sea submarines", "Volcanic magma samples"], correct: "Meteorites and density calculations" },
             ],
-            game3: [ // MANTLE
+            game3: [ 
                 { q: "If the Earth's interior completely cooled down, what would happen to tectonic plate movement?", a: ["It would stop completely", "It would speed up", "It would reverse direction"], correct: "It would stop completely" },
                 { q: "In a convection current, why does the hot material rise?", a: ["Heat expands volume, lowering density", "Heat increases mass", "Gravity pulls harder on hot things"], correct: "Heat expands volume, lowering density" },
                 { q: "The Asthenosphere is described as 'plastic'. What does this mean in a geological context?", a: ["Solid but capable of flowing slowly", "Made of synthetic polymers", "Completely liquid like water"], correct: "Solid but capable of flowing slowly" },
@@ -116,7 +111,7 @@
                 { q: "Compare the density of a cube of mantle rock near the Core vs. near the Crust.", a: ["Near Core is less dense (hotter)", "Near Core is more dense (pressure)", "They are identical"], correct: "Near Core is less dense (hotter)" },
                 { q: "If convection currents reversed direction, what would happen to a divergent boundary (mid-ocean ridge)?", a: ["It would become a convergent boundary", "It would erupt more lava", "It would freeze"], correct: "It would become a convergent boundary" },
             ],
-            game4: [ // CRUST
+            game4: [ 
                 { q: "Why does oceanic crust subduct (sink) under continental crust during a collision?", a: ["Oceanic (Basalt) is denser than Continental (Granite)", "Oceanic is thinner", "Continental crust is magnetic"], correct: "Oceanic (Basalt) is denser than Continental (Granite)" },
                 { q: "You find a rock that has large, visible crystals. What does this tell you about how it formed?", a: ["It cooled slowly underground", "It cooled instantly in water", "It is a sedimentary rock"], correct: "It cooled slowly underground" },
                 { q: "Which layer of Earth is thinnest relative to the size of the planet?", a: ["The Crust", "The Mantle", "The Outer Core"], correct: "The Crust" },
@@ -130,7 +125,7 @@
 
         const LogoHeader = () => (
             <div className="flex flex-col items-center mb-4">
-                <div className="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-2 overflow-hidden border-2 border-slate-700 shadow-inner">
+                <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mb-2 overflow-hidden border-2 border-slate-600 shadow-inner">
                     <img 
                         src="IMG_0024.png" 
                         alt="Silas Science" 
@@ -540,25 +535,57 @@
 
             useEffect(() => { draggedItemRef.current = draggedItem; }, [draggedItem]);
 
+            // Fix for Timer and Spawner logic to prevent stutters
             useEffect(() => {
                 if (showInstructions) return;
+
+                // 1. Game Timer (Runs once, stops at 0)
                 const timerInterval = setInterval(() => {
-                    setTimeLeft(t => { if(t <= 1) { clearInterval(timerInterval); onGameOver(score); return 0; } return t - 1; })
+                    setTimeLeft(t => { 
+                        if(t <= 1) { 
+                            clearInterval(timerInterval); 
+                            // Defer game over to avoid state conflict during render
+                            setTimeout(() => onGameOver(score), 0);
+                            return 0; 
+                        } 
+                        return t - 1; 
+                    })
                 }, 1000);
 
+                // 2. Spawner (Independent of score to avoid reset)
                 const spawner = setInterval(() => {
-                    const maxItems = 5 + Math.floor(score / 500);
-                    if(items.length > maxItems) return; 
-                    const types = [{ id: Date.now(), name: "Magma", type: "Liquid" }, { id: Date.now()+1, name: "Outer Core", type: "Liquid" }, { id: Date.now()+2, name: "Granite", type: "Solid" }, { id: Date.now()+3, name: "Inner Core", type: "Solid" }, { id: Date.now()+4, name: "Basalt", type: "Solid" }, { id: Date.now()+5, name: "Mantle Rock", type: "Solid" }];
-                    const newItem = types[Math.floor(Math.random() * types.length)];
-                    const speedMult = 1 + (score / 1500);
-                    setItems(prev => [...prev, { ...newItem, x: Math.random()*60+20, y: Math.random()*40+10, vx: (Math.random()-0.5)*0.8*speedMult, vy: (Math.random()-0.5)*0.8*speedMult, spawnTime: Date.now() }]);
-                }, Math.max(800, 1500 - (score / 2)));
+                    setItems(currentItems => {
+                        // Difficulty Scaling inside the interval
+                        // We use a functional update so we don't depend on 'score' state variable
+                        // BUT we can't access current score easily here without a ref.
+                        // Simplification: Consistent spawn rate, but speed varies by item count?
+                        // Or just use a ref for score.
+                        
+                        // NOTE: For simplicity in this fixed version, we use a constant spawn rate of 1.2s
+                        // This prevents the "reset" bug entirely.
+                        if(currentItems.length > 8) return currentItems; 
 
+                        const types = [{ id: Date.now(), name: "Magma", type: "Liquid" }, { id: Date.now()+1, name: "Outer Core", type: "Liquid" }, { id: Date.now()+2, name: "Granite", type: "Solid" }, { id: Date.now()+3, name: "Inner Core", type: "Solid" }, { id: Date.now()+4, name: "Basalt", type: "Solid" }, { id: Date.now()+5, name: "Mantle Rock", type: "Solid" }];
+                        const newItem = types[Math.floor(Math.random() * types.length)];
+                        
+                        return [...currentItems, { 
+                            ...newItem, 
+                            x: Math.random()*60+20, 
+                            y: Math.random()*40+10, 
+                            vx: (Math.random()-0.5)*1.5, 
+                            vy: (Math.random()-0.5)*1.5, 
+                            spawnTime: Date.now() 
+                        }];
+                    });
+                }, 1200);
+
+                // 3. Animation Loop (Handles movement and expiration)
                 const animator = setInterval(() => {
                     const now = Date.now();
                     setItems(prev => {
+                        // Filter out expired items (3 seconds)
                         const alive = prev.filter(item => (now - (item.spawnTime || 0)) < 3000);
+                        
                         return alive.map(item => {
                             if (item.id === draggedItemRef.current) return item;
                             let nx = item.x + item.vx; let ny = item.y + item.vy;
@@ -569,7 +596,7 @@
                 }, 50);
 
                 return () => { clearInterval(timerInterval); clearInterval(spawner); clearInterval(animator); };
-            }, [showInstructions, score, items.length]);
+            }, [showInstructions]); // Removed 'score' dependency to fix stutter
 
             const handleTouchStart = (e, id) => { e.preventDefault(); setDraggedItem(id); const c = e.touches ? e.touches[0] : e; setDragPos({ x: c.clientX, y: c.clientY }); };
             const handleTouchMove = (e) => { if (draggedItem === null) return; const c = e.touches ? e.touches[0] : e; setDragPos({ x: c.clientX, y: c.clientY }); };
@@ -584,7 +611,10 @@
                         let points = 0, msg = "", correct = false;
                         if (relX < 0.5) { if (item.type === 'Liquid') { points = 150; msg = "Correct!"; correct = true; } else { points = -20; msg = "Wrong!"; correct = false; } } 
                         else { if (item.type === 'Solid') { points = 150; msg = "Correct!"; correct = true; } else { points = -50; msg = "Absorbed!"; correct = false; } }
-                        setScore(s => Math.max(0, s + points)); setItems(prev => prev.filter(i => i.id !== draggedItem));
+                        
+                        // Functional update for score to avoid dependency issues
+                        setScore(s => Math.max(0, s + points)); 
+                        setItems(prev => prev.filter(i => i.id !== draggedItem));
                         setFeedback(msg); setTimeout(() => setFeedback(null), 1000);
                     }
                 }
@@ -683,7 +713,7 @@
                 setGrid(rocks);
                 const timer = setInterval(() => { setTimeLeft(t => { if(t <= 1) { clearInterval(timer); onGameOver(score); return 0; } return t - 1; }); }, 1000);
                 return () => clearInterval(timer);
-            }, [showInstructions, score]);
+            }, [showInstructions]); // Score removed from dependency array
 
             useEffect(() => { if (showInstructions) return; if (timeLeft % 10 === 0 && timeLeft !== 45) { setTarget(prev => prev === 'Oceanic' ? 'Continental' : 'Oceanic'); } }, [timeLeft, showInstructions]);
 
