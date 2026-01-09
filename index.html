@@ -2,166 +2,270 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geo-Lab</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Earth Initiative: Geology Training</title>
     
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <!-- React & ReactDOM (The Engine) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-
+    <!-- Babel (To read the code) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS (The Styling) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Animation Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-in',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
-        body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            background-color: #0f172a; color: white; 
-            font-family: ui-sans-serif, system-ui, sans-serif;
-            overflow: hidden; touch-action: none;
+        body { 
+            background-color: #020617; 
+            color: white; 
+            margin: 0; 
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            overflow: hidden; /* Prevent scrolling on game screen */
         }
-        .animate-in { animation: fadeIn 0.3s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
-
-    <script>
-        const ICONS = {
-            Play: '<polygon points="5 3 19 12 5 21 5 3"></polygon>',
-            Activity: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>',
-            Layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline>',
-            Wind: '<path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>',
-            Database: '<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>',
-            Award: '<circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>',
-            ChevronRight: '<polyline points="9 18 15 12 9 6"></polyline>',
-            CheckCircle: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>',
-            XCircle: '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>',
-            Zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>',
-            Shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
-            Hexagon: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>',
-            Lock: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>',
-            Trash2: '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>',
-            BrainCircuit: '<path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.97-1.364"/><path d="M19.97 16.636A4 4 0 0 1 18 18"/>',
-            Microscope: '<path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/>',
-            Scan: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>',
-            Crosshair: '<circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/>',
-            Target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
-            AlertTriangle: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
-            Droplet: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
-            Box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
-            Gem: '<path d="M6 3h12l4 6-10 13L2 9Z"/>'
-        };
-    </script>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-        
-        // --- SAFE STORAGE WRAPPER ---
-        const SafeStorage = {
-            getItem: (key) => {
-                try { return localStorage.getItem(key); } catch (e) { return null; }
-            },
-            setItem: (key, value) => {
-                try { localStorage.setItem(key, value); } catch (e) { }
-            },
-            removeItem: (key) => {
-                try { localStorage.removeItem(key); } catch (e) { }
-            }
-        };
+        const { useState, useEffect, useRef, useMemo } = React;
 
-        // --- ICONS COMPONENT ---
-        const Icon = ({ name, className }) => {
-            const svgString = ICONS[name] || ICONS['AlertTriangle'];
-            return <div className={className} dangerouslySetInnerHTML={{ __html: svgString }} style={{ display: 'inline-block', verticalAlign: 'middle' }} />;
-        };
+        // --- ICONS (Built-in to ensure they always load) ---
+        const Icon = ({ children, ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>{children}</svg>
+        );
+        const Activity = (p) => <Icon {...p}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></Icon>;
+        const CheckCircle = (p) => <Icon {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Icon>;
+        const XCircle = (p) => <Icon {...p}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></Icon>;
+        const AlertTriangle = (p) => <Icon {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></Icon>;
+        const ArrowDown = (p) => <Icon {...p}><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></Icon>;
+        const ArrowUp = (p) => <Icon {...p}><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></Icon>;
+        const RotateCcw = (p) => <Icon {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></Icon>;
+        const Layers = (p) => <Icon {...p}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></Icon>;
+        const MousePointer = (p) => <Icon {...p}><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/><path d="m13 13 6 6"/></Icon>;
+        const Wind = (p) => <Icon {...p}><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></Icon>;
 
-        // --- UTILS ---
+
+        // --- DATA BANKS (Core PDF + Extensions) ---
+        const Q_BANK_MINER = [
+            { q: "Direct evidence of Earth's interior comes from?", a: "Rock samples", dist: ["Seismic waves", "Meteorites", "Satellite images"] },
+            { q: "What is the deepest geologists have drilled into the Earth?", a: "12.3 km", dist: ["100 km", "50 km", "6,000 km"] },
+            { q: "The crust is mainly composed of which elements?", a: "Oxygen and Silicon", dist: ["Iron and Nickel", "Hydrogen and Helium", "Gold and Silver"] },
+            { q: "Oceanic crust is primarily made of which rock?", a: "Basalt", dist: ["Granite", "Sandstone", "Limestone"] },
+            { q: "Continental crust is primarily made of which rock?", a: "Granite", dist: ["Basalt", "Obsidian", "Pumice"] },
+            { q: "Which type of crust is generally thinner?", a: "Oceanic Crust", dist: ["Continental Crust", "Mountain Crust", "Desert Crust"] },
+            { q: "Which type of crust is generally thicker?", a: "Continental Crust", dist: ["Oceanic Crust", "Sea Floor", "Basaltic Crust"] },
+            { q: "Rock samples from mountain ranges tell us about...", a: "Deep Earth crust", dist: ["The core", "Space", "Ocean tides"] },
+            { q: "The Lithosphere consists of...", a: "Crust and Upper Mantle", dist: ["Mantle only", "Core and Crust", "Asthenosphere and Core"] },
+            { q: "Comparing the two crusts, Continental crust is...", a: "Thicker than Oceanic", dist: ["Thinner than Oceanic", "The same thickness", "Made of Basalt"] },
+            // Extensions
+            { q: "Obsidian is a type of rock formed by...", a: "Rapidly cooling lava", dist: ["Slowly cooling magma", "Sand compression", "Fossilized plants"] },
+            { q: "The 'Ring of Fire' is famous for...", a: "Volcanoes and Earthquakes", dist: ["Forest fires", "Solar flares", "Hot deserts"] },
+            { q: "Pumice is unique because it...", a: "Can float on water", dist: ["Is magnetic", "Glows in the dark", "Is the hardest rock"] },
+            { q: "Tectonic plates float on top of the...", a: "Asthenosphere", dist: ["Outer Core", "Inner Core", "Ocean"] },
+            { q: "The study of Earth's solid matter is called...", a: "Geology", dist: ["Biology", "Astronomy", "Meteorology"] },
+            { q: "Which of these is NOT a type of rock?", a: "Plastic", dist: ["Igneous", "Sedimentary", "Metamorphic"] },
+            { q: "Magma that reaches the surface is called...", a: "Lava", dist: ["Ash", "Obsidian", "Core material"] },
+            { q: "The rigid outer shell of the Earth is the...", a: "Lithosphere", dist: ["Hydrosphere", "Atmosphere", "Hemisphere"] },
+            { q: "What drives the movement of tectonic plates?", a: "Convection in Mantle", dist: ["Ocean tides", "Wind", "Human mining"] },
+            { q: "A boundary where plates pull apart is called...", a: "Divergent", dist: ["Convergent", "Transform", "Insurgent"] }
+        ];
+
+        const Q_BANK_CONVECTION = [
+            { q: "Heat transfer in the Mantle occurs via...", a: "Convection", dist: ["Conduction", "Radiation", "Evaporation"] },
+            { q: "In a convection current, heat flows from...", a: "Hot to Cold", dist: ["Cold to Hot", "Liquid to Solid", "Up to Down"] },
+            { q: "During mantle convection, hot rock...", a: "Rises", dist: ["Sinks", "Spins", "Freezes"] },
+            { q: "During mantle convection, cooler rock...", a: "Sinks", dist: ["Rises", "Evaporates", "Expands"] },
+            { q: "Hot rock in the mantle is...", a: "Less dense", dist: ["More dense", "Heavier", "Solid iron"] },
+            { q: "Cooler rock in the mantle is...", a: "More dense", dist: ["Less dense", "Lighter", "Gas"] },
+            { q: "Where does the heat for convection come from?", a: "The Core", dist: ["The Sun", "The Crust", "The Ocean"] },
+            { q: "A surface example of convection is...", a: "Hot springs", dist: ["Glaciers", "Sand dunes", "Rivers"] },
+            { q: "The rate of mantle convection is...", a: "Very slow", dist: ["Very fast", "Instant", "Weekly"] },
+            { q: "The Mantle consists primarily of...", a: "Hot rock", dist: ["Liquid iron", "Water", "Ice"] },
+            // Extensions
+            { q: "The measure of a fluid's resistance to flow is...", a: "Viscosity", dist: ["Density", "Gravity", "Velocity"] },
+            { q: "A 'Mantle Plume' can create...", a: "Hotspot Volcanoes", dist: ["Hurricanes", "Tornadoes", "Glaciers"] },
+            { q: "Which mineral is commonly found in the mantle?", a: "Olivine", dist: ["Gold", "Coal", "Salt"] },
+            { q: "The upper mantle and crust make up the...", a: "Lithosphere", dist: ["Mesosphere", "Exosphere", "Stratosphere"] },
+            { q: "Convection is similar to...", a: "Boiling soup", dist: ["Freezing ice", "Baking bread", "Cutting paper"] },
+            { q: "When rock melts, it becomes...", a: "Magma", dist: ["Sand", "Water", "Gas"] },
+            { q: "The force of gravity pulls denser material...", a: "Downwards", dist: ["Upwards", "Sideways", "Backwards"] },
+            { q: "The mantle makes up what % of Earth's volume?", a: "About 84%", dist: ["10%", "50%", "99%"] },
+            { q: "Is the mantle completely liquid?", a: "No, it's mostly solid/plastic", dist: ["Yes, like water", "Yes, like oil", "No, it's gas"] },
+            { q: "Subduction zones are where...", a: "Crust sinks into mantle", dist: ["New crust is made", "Mountains disappear", "Oceans dry up"] }
+        ];
+
+        const Q_BANK_CORE = [
+            { q: "Which waves can travel through both solids and liquids?", a: "P-waves", dist: ["S-waves", "Surface waves", "Tidal waves"] },
+            { q: "Which waves can ONLY travel through solids?", a: "S-waves", dist: ["P-waves", "Sound waves", "Light waves"] },
+            { q: "The Outer Core is in which state of matter?", a: "Liquid", dist: ["Solid", "Gas", "Plasma"] },
+            { q: "The Inner Core is in which state of matter?", a: "Solid", dist: ["Liquid", "Gas", "Gel"] },
+            { q: "The Inner Core is primarily made of...", a: "Iron and Nickel", dist: ["Gold and Silver", "Granite and Basalt", "Silicon and Oxygen"] },
+            { q: "Why is the Inner Core solid despite the heat?", a: "Extreme Pressure", dist: ["Low Temperature", "Magnetic Fields", "Chemical Bonding"] },
+            { q: "Earth's magnetic field is caused by...", a: "Movement of the Outer Core", dist: ["The Crust's rotation", "Ocean currents", "Wind patterns"] },
+            { q: "The magnetic field allows us to...", a: "Orbit the Sun", dist: ["Float in space", "Have tides", "Breathe air"] },
+            { q: "High temperatures in the core likely come from...", a: "Radioactive substances", dist: ["Friction from wind", "Solar radiation", "Burning coal"] },
+            { q: "S-waves stop traveling when they reach the...", a: "Outer Core", dist: ["Mantle", "Crust", "Lithosphere"] },
+            // Extensions
+            { q: "Scientists use these space rocks to infer core composition:", a: "Meteorites", dist: ["Moon rocks", "Satellites", "Comets"] },
+            { q: "The area where no seismic waves are detected is the...", a: "Shadow Zone", dist: ["Dead Zone", "Silent Zone", "Quiet Area"] },
+            { q: "The 'Geodynamo' effect refers to...", a: "Creating the magnetic field", dist: ["Volcanic eruptions", "Earthquakes", "Tsunami generation"] },
+            { q: "Which element is likely also in the core (lighter)?", a: "Sulfur", dist: ["Helium", "Neon", "Plastic"] },
+            { q: "The boundary between Mantle and Core is the...", a: "Gutenberg Discontinuity", dist: ["Mohorovicic Discontinuity", "San Andreas Fault", "Equator"] },
+            { q: "The Inner Core spins...", a: "Faster than Earth", dist: ["Slower than Earth", "Backwards", "It does not spin"] },
+            { q: "If the Core cooled down completely...", a: "Magnetic field would vanish", dist: ["Gravity would stop", "Day would turn to night", "We would float"] },
+            { q: "P-Waves are also known as...", a: "Primary/Pressure Waves", dist: ["Permanent Waves", "Power Waves", "Purple Waves"] },
+            { q: "S-Waves are also known as...", a: "Secondary/Shear Waves", dist: ["Super Waves", "Slow Waves", "Sonic Waves"] },
+            { q: "Which layer has the highest density?", a: "Inner Core", dist: ["Outer Core", "Mantle", "Crust"] }
+        ];
+
         const shuffleArray = (array) => {
-            const newArr = [...array];
-            for (let i = newArr.length - 1; i > 0; i--) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+                [arr[i], arr[j]] = [arr[j], arr[i]];
             }
-            return newArr;
-        };
-
-        // --- QUESTION BANK ---
-        const QUESTION_BANK = {
-            game2: [ 
-                { q: "If a seismograph station detects P-waves but no S-waves from an earthquake, what can you infer about the path the waves took?", a: ["They passed through a liquid layer", "They passed through solid granite", "They traveled along the surface only"], correct: "They passed through a liquid layer" },
-                { q: "Why do P-waves refract (bend) when they hit the boundary between the Mantle and the Outer Core?", a: ["Density changes drastically", "The temperature drops", "They hit a solid wall"], correct: "Density changes drastically" },
-                { q: "Scientists use the 'Shadow Zone' to calculate the size of Earth's core. What property of S-waves creates this shadow?", a: ["They cannot shear through liquids", "They are too fast to be recorded", "They reflect off the crust"], correct: "They cannot shear through liquids" },
-                { q: "If the Earth were completely solid rock through and through, what would happen to the seismic waves from an earthquake?", a: ["They would travel in straight lines directly to the other side", "They would stop at the equator", "They would speed up infinitely"], correct: "They would travel in straight lines directly to the other side" },
-                { q: "Why is the inner core solid despite being hotter than the liquid outer core?", a: ["Immense pressure prevents melting", "It is made of a different metal", "The magnetic field freezes it"], correct: "Immense pressure prevents melting" },
-                { q: "You detect a seismic wave moving at 8 km/s. Suddenly it slows to 4 km/s. What likely happened to material it is traveling through?", a: ["It became less dense or hotter", "It became solid iron", "It entered the vacuum of space"], correct: "It became less dense or hotter" },
-                { q: "Which piece of evidence best supports the claim that the Earth is not hollow?", a: ["Seismic wave transmission times", "Volcanic eruptions", "The depth of the oceans"], correct: "Seismic wave transmission times" },
-                { q: "How do we know the composition of the Core if we cannot drill there?", a: ["Meteorites and density calculations", "Deep sea submarines", "Volcanic magma samples"], correct: "Meteorites and density calculations" },
-            ],
-            game3: [ 
-                { q: "If the Earth's interior completely cooled down, what would happen to tectonic plate movement?", a: ["It would stop completely", "It would speed up", "It would reverse direction"], correct: "It would stop completely" },
-                { q: "In a convection current, why does the hot material rise?", a: ["Heat expands volume, lowering density", "Heat increases mass", "Gravity pulls harder on hot things"], correct: "Heat expands volume, lowering density" },
-                { q: "The Asthenosphere is described as 'plastic'. What does this mean in a geological context?", a: ["Solid but capable of flowing slowly", "Made of synthetic polymers", "Completely liquid like water"], correct: "Solid but capable of flowing slowly" },
-                { q: "If you added a cold slab of rock to a tank of hot magma, where would it go?", a: ["Sink to the bottom", "Float on top", "Dissolve instantly"], correct: "Sink to the bottom" },
-                { q: "What is the primary energy source driving the convection currents in the mantle?", a: ["Radioactive decay and residual heat", "The sun's radiation", "Friction from ocean tides"], correct: "Radioactive decay and residual heat" },
-                { q: "Compare the density of a cube of mantle rock near the Core vs. near the Crust.", a: ["Near Core is less dense (hotter)", "Near Core is more dense (pressure)", "They are identical"], correct: "Near Core is less dense (hotter)" },
-                { q: "If convection currents reversed direction, what would happen to a divergent boundary (mid-ocean ridge)?", a: ["It would become a convergent boundary", "It would erupt more lava", "It would freeze"], correct: "It would become a convergent boundary" },
-            ],
-            game4: [ 
-                { q: "Why does oceanic crust subduct (sink) under continental crust during a collision?", a: ["Oceanic (Basalt) is denser than Continental (Granite)", "Oceanic is thinner", "Continental crust is magnetic"], correct: "Oceanic (Basalt) is denser than Continental (Granite)" },
-                { q: "You find a rock that has large, visible crystals. What does this tell you about how it formed?", a: ["It cooled slowly underground", "It cooled instantly in water", "It is a sedimentary rock"], correct: "It cooled slowly underground" },
-                { q: "Which layer of Earth is thinnest relative to the size of the planet?", a: ["The Crust", "The Mantle", "The Outer Core"], correct: "The Crust" },
-                { q: "If you drilled into the sea floor, what rock type would you hit first?", a: ["Basalt", "Granite", "Sandstone"], correct: "Basalt" },
-                { q: "Why is continental crust generally much older than oceanic crust?", a: ["Oceanic crust is constantly recycled/destroyed", "Continents are protected by mountains", "Oceanic crust dissolves in water"], correct: "Oceanic crust is constantly recycled/destroyed" },
-                { q: "The Moho discontinuity marks the change in speed of seismic waves. What boundary does this represent?", a: ["Crust vs. Mantle", "Mantle vs. Core", "Inner vs. Outer Core"], correct: "Crust vs. Mantle" },
-            ]
+            return arr;
         };
 
         // --- COMPONENTS ---
 
-        const LogoHeader = () => (
-            <div className="flex flex-col items-center mb-4">
-                <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center mb-2 overflow-hidden border-2 border-slate-600 shadow-inner">
-                    <img 
-                        src="IMG_0024.png" 
-                        alt="Silas Science" 
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.innerHTML = '<span class="text-3xl font-black text-emerald-500">SS</span>';
-                        }}
-                    />
-                </div>
-                <div className="text-xs font-bold tracking-widest text-slate-500">SILAS SCIENCE DIVISION</div>
-            </div>
-        );
+        const QuizGate = ({ onPass, onCancel, gameTitle, questionBank }) => {
+            const [questions, setQuestions] = useState([]);
+            const [currentQIndex, setCurrentQIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [showResult, setShowResult] = useState(false);
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
 
-        const InstructionModal = ({ title, objective, controls, onStart }) => (
-            <div className="absolute inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center p-6 text-center animate-in">
-                <div className="bg-slate-800 p-8 rounded-2xl border-2 border-emerald-500 shadow-2xl max-w-md w-full">
-                    <LogoHeader />
-                    <h2 className="text-2xl font-black text-emerald-400 mb-2 uppercase">{title}</h2>
-                    <div className="w-full h-1 bg-slate-700 mb-6"></div>
-                    
-                    <div className="mb-6 text-left">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Objective</h3>
-                        <p className="text-slate-200 text-sm leading-relaxed">{objective}</p>
+            const initQuiz = () => {
+                const shuffled = shuffleArray(questionBank);
+                const selected = shuffled.slice(0, 5).map(q => ({
+                    ...q,
+                    choices: shuffleArray([q.a, ...q.dist])
+                }));
+                setQuestions(selected);
+                setCurrentQIndex(0);
+                setScore(0);
+                setShowResult(false);
+                setSelectedAnswer(null);
+            };
+
+            useEffect(() => { initQuiz(); }, [questionBank]);
+
+            const handleAnswer = (choice) => {
+                setSelectedAnswer(choice);
+                setTimeout(() => {
+                    const isCorrect = choice === questions[currentQIndex].a;
+                    if (isCorrect) setScore(s => s + 1);
+
+                    if (currentQIndex < 4) {
+                        setCurrentQIndex(prev => prev + 1);
+                        setSelectedAnswer(null);
+                    } else {
+                        setShowResult(true);
+                    }
+                }, 400);
+            };
+
+            if (questions.length === 0) return <div className="p-8 text-center">Loading Certification Exam...</div>;
+
+            if (showResult) {
+                const passed = score >= 3;
+                return (
+                    <div className="flex flex-col items-center justify-center h-full p-8 bg-slate-900 text-white animate-fade-in">
+                        <div className={`text-6xl mb-4 ${passed ? 'text-green-400' : 'text-red-400'}`}>
+                            {passed ? <CheckCircle width={80} height={80} /> : <XCircle width={80} height={80} />}
+                        </div>
+                        <h2 className="text-3xl font-bold mb-2">{passed ? "Access Granted" : "Access Denied"}</h2>
+                        <p className="text-xl mb-6">Score: {score} / 5</p>
+                        <p className="mb-8 text-slate-300 text-center max-w-md">
+                            {passed 
+                                ? `Excellent work, Trainee. You have demonstrated sufficient knowledge to operate the ${gameTitle}.` 
+                                : "Your knowledge of Earth's interior is insufficient for this mission. Review your notes and try again."}
+                        </p>
+                        <div className="flex gap-4">
+                            <button onClick={onCancel} className="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg">Return to Base</button>
+                            {passed ? (
+                                <button onClick={onPass} className="px-6 py-3 bg-green-600 hover:bg-green-500 rounded-lg font-bold animate-pulse">Proceed to Mission</button>
+                            ) : (
+                                <button onClick={initQuiz} className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-lg font-bold">Retry Exam</button>
+                            )}
+                        </div>
                     </div>
+                );
+            }
 
-                    <div className="mb-8 text-left bg-slate-900 p-4 rounded-lg">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Controls</h3>
-                        <div className="text-slate-300 text-sm space-y-2 font-mono">
-                            {controls.map((c, i) => (
-                                <div key={i} className="flex items-start gap-2">
-                                    <span className="text-emerald-500">➤</span> {c}
-                                </div>
+            const q = questions[currentQIndex];
+
+            return (
+                <div className="flex flex-col h-full bg-slate-800 text-white p-6">
+                    <div className="mb-6 flex justify-between items-center border-b border-slate-600 pb-4">
+                        <h2 className="text-xl font-bold text-blue-300">Security Clearance: Level {currentQIndex + 1}/5</h2>
+                        <button onClick={onCancel} className="text-slate-400 hover:text-white">Abort</button>
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col justify-center max-w-2xl mx-auto w-full">
+                        <h3 className="text-2xl font-semibold mb-8">{q.q}</h3>
+                        <div className="grid grid-cols-1 gap-4">
+                            {q.choices.map((choice, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => handleAnswer(choice)}
+                                    disabled={selectedAnswer !== null}
+                                    className={`p-4 text-left rounded-lg border-2 transition-all ${
+                                        selectedAnswer === choice 
+                                            ? 'bg-blue-600 border-blue-400' 
+                                            : 'bg-slate-700 border-slate-600 hover:bg-slate-600 hover:border-slate-500'
+                                    }`}
+                                >
+                                    {choice}
+                                </button>
                             ))}
                         </div>
                     </div>
+                </div>
+            );
+        };
 
+        const Instructions = ({ title, content, onStart }) => (
+            <div className="flex flex-col items-center justify-center h-full p-8 bg-slate-900 text-white">
+                <div className="max-w-2xl bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-2xl">
+                    <h1 className="text-3xl font-bold text-yellow-400 mb-6 border-b border-slate-600 pb-2">{title} Instructions</h1>
+                    <div className="space-y-4 text-lg text-slate-200 mb-8 leading-relaxed">
+                        {content.map((line, i) => <p key={i}>{line}</p>)}
+                    </div>
                     <button 
                         onClick={onStart}
-                        className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg rounded-lg shadow-lg shadow-emerald-900/50 transition-all active:scale-95 border-none cursor-pointer"
+                        className="w-full py-4 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold text-xl rounded-lg transform transition hover:scale-105"
                     >
                         START MISSION
                     </button>
@@ -169,303 +273,503 @@
             </div>
         );
 
-        const IntroScreen = ({ onStart }) => {
-            const [initials, setInitials] = useState('');
+        // --- GAMES ---
+
+        // GAME 1: Seismic Scanner
+        const SeismicScanner = ({ onComplete }) => {
+            const [waves, setWaves] = useState([]);
+            const [selectedTool, setSelectedTool] = useState(null);
+            const [placements, setPlacements] = useState({});
+            const [log, setLog] = useState(["System Initialized. Waiting for scan..."]);
+            const [animating, setAnimating] = useState(false);
+
+            const addToLog = (msg) => setLog(prev => [msg, ...prev].slice(0, 4));
+
+            const fireWave = (type) => {
+                if (animating) return;
+                setAnimating(true);
+                addToLog(`Firing ${type}-Wave pulse...`);
+                
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 2;
+                    setWaves([{ type, r: progress }]);
+
+                    if (type === 'P') {
+                        if (progress > 300) {
+                            clearInterval(interval);
+                            setWaves([]);
+                            setAnimating(false);
+                            addToLog("P-Wave traveled through ALL layers. Path clear.");
+                        }
+                    } else if (type === 'S') {
+                        if (progress > 140) { 
+                           clearInterval(interval);
+                           setWaves(prev => [{...prev[0], stopped: true}]);
+                           addToLog("ALERT: S-Wave BLOCKED by Liquid Layer!");
+                           setTimeout(() => {
+                             setWaves([]);
+                             setAnimating(false);
+                           }, 1000);
+                        }
+                    }
+                }, 20);
+            };
+
+            const handleToolSelect = (label) => {
+                setSelectedTool(label);
+                addToLog(`Selected label: ${label}. Click a layer to apply.`);
+            };
+
+            const handleLayerClick = (layerId) => {
+                if (!selectedTool) {
+                    addToLog("Select a label from the right panel first.");
+                    return;
+                }
+                setPlacements(prev => ({ ...prev, [layerId]: selectedTool }));
+                addToLog(`Labeled layer as ${selectedTool}.`);
+                setSelectedTool(null);
+            };
+
+            const checkCompletion = () => {
+                const key = { l1: "Crust", l2: "Mantle", l3: "Outer Core", l4: "Inner Core" };
+                let correct = 0;
+                Object.keys(key).forEach(k => {
+                    if (placements[k] === key[k]) correct++;
+                });
+
+                if (correct === 4) {
+                    addToLog("SUCCESS: Structure Confirmed. Accessing Mainframe...");
+                    setTimeout(onComplete, 2000);
+                } else {
+                    addToLog(`ERROR: Incorrect Map. ${correct}/4 Correct.`);
+                }
+            };
 
             return (
-                <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-6 font-sans">
-                    <div className="max-w-sm w-full bg-slate-900 p-6 rounded-2xl shadow-2xl border border-slate-800 text-center relative overflow-hidden">
-                        <LogoHeader />
-                        <h1 className="text-3xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">GEO-LAB INITIATIVE</h1>
-                        
-                        <div className="mb-6 text-left bg-slate-800 p-4 rounded-lg border border-slate-700 mt-6">
-                            <p className="text-sm text-slate-300 mb-2 font-bold flex items-center"><Icon name="Shield" className="w-3 h-3 mr-2 text-emerald-500"/> MISSION BRIEFING:</p>
-                            <p className="text-xs text-slate-400 leading-relaxed">
-                                Welcome, Recruit. Access to the Field Simulations requires clearance. 
-                                You must prove your knowledge in the <strong>Project Deep Dive</strong> simulation before being granted Field Agent status.
-                            </p>
+                <div className="flex h-full bg-slate-900 text-white p-4 gap-4 select-none">
+                    <div className="flex-1 bg-black rounded-xl relative overflow-hidden border border-slate-700 flex flex-col items-center justify-center">
+                        <div className="absolute top-4 left-4 right-4 bg-slate-800/80 p-2 rounded font-mono text-sm h-24 overflow-hidden border border-green-500/30">
+                            {log.map((l, i) => <div key={i} className={i === 0 ? "text-green-400 font-bold" : "text-slate-500"}>{l}</div>)}
                         </div>
 
-                        <div className="mb-6">
-                            <label className="block text-left text-xs font-bold text-slate-400 mb-2 uppercase">Enter Agent Initials</label>
-                            <input 
-                                type="text" 
-                                maxLength={3}
-                                value={initials}
-                                onChange={(e) => setInitials(e.target.value.toUpperCase())}
-                                className="w-full bg-slate-950 border-2 border-slate-700 text-center text-3xl font-mono p-3 rounded-lg focus:border-emerald-500 focus:outline-none text-white tracking-widest placeholder-slate-700"
-                                placeholder="ABC"
-                            />
-                        </div>
+                        <svg viewBox="-160 -160 320 320" className="w-full h-full max-w-md mt-16">
+                            <circle cx="0" cy="0" r="150" fill={placements.l1 === "Crust" ? "#8B4513" : "#2a2a2a"} stroke={selectedTool ? "#fff" : "#555"} strokeWidth="2" onClick={() => handleLayerClick('l1')} className="cursor-pointer hover:opacity-90" />
+                            <circle cx="0" cy="0" r="140" fill={placements.l2 === "Mantle" ? "#B22222" : "#1a1a1a"} stroke="#444" strokeWidth="1" onClick={(e) => { e.stopPropagation(); handleLayerClick('l2'); }} className="cursor-pointer hover:opacity-90"/>
+                            <circle cx="0" cy="0" r="80" fill={placements.l3 === "Outer Core" ? "#FF8C00" : "#0f0f0f"} stroke="#333" strokeWidth="1" onClick={(e) => { e.stopPropagation(); handleLayerClick('l3'); }} className="cursor-pointer hover:opacity-90"/>
+                            <circle cx="0" cy="0" r="40" fill={placements.l4 === "Inner Core" ? "#FFFF00" : "#000"} stroke="#222" strokeWidth="1" onClick={(e) => { e.stopPropagation(); handleLayerClick('l4'); }} className="cursor-pointer hover:opacity-90"/>
+                            {waves.map((w, i) => (<circle key={i} cx="0" cy="-150" r={w.r} fill="none" stroke={w.type === 'P' ? 'cyan' : 'magenta'} strokeWidth="4" className={w.stopped ? "animate-pulse" : ""}/>))}
+                            {placements.l1 && <text x="0" y="-142" textAnchor="middle" fontSize="8" fill="white">{placements.l1}</text>}
+                            {placements.l2 && <text x="0" y="-100" textAnchor="middle" fontSize="8" fill="white">{placements.l2}</text>}
+                            {placements.l3 && <text x="0" y="-60" textAnchor="middle" fontSize="8" fill="white">{placements.l3}</text>}
+                            {placements.l4 && <text x="0" y="5" textAnchor="middle" fontSize="6" fill="black">{placements.l4}</text>}
+                        </svg>
 
-                        <button 
-                            onClick={() => initials.length >= 2 && onStart(initials)}
-                            disabled={initials.length < 2}
-                            className={`w-full py-5 rounded-xl font-black text-xl uppercase tracking-widest transition-all border-none cursor-pointer ${initials.length >= 2 ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-[0_0_30px_rgba(16,185,129,0.6)] ring-2 ring-emerald-300' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}
-                        >
-                            INITIALIZE TRAINING
-                        </button>
+                        <div className="absolute bottom-4 left-4 text-xs text-slate-400">
+                            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-cyan-400"></span> P-Wave (Passes Liquids)</div>
+                            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-pink-500"></span> S-Wave (Stops at Liquids)</div>
+                        </div>
+                    </div>
+
+                    <div className="w-64 flex flex-col gap-4">
+                        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                            <h3 className="font-bold text-yellow-400 mb-2 text-sm uppercase">1. Scan Interior</h3>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button onClick={() => fireWave('P')} disabled={animating} className="py-3 bg-cyan-900 text-cyan-300 border border-cyan-700 rounded hover:bg-cyan-800 font-bold text-sm">FIRE P-WAVE</button>
+                                <button onClick={() => fireWave('S')} disabled={animating} className="py-3 bg-pink-900 text-pink-300 border border-pink-700 rounded hover:bg-pink-800 font-bold text-sm">FIRE S-WAVE</button>
+                            </div>
+                        </div>
+                        <div className="bg-slate-800 p-4 rounded-lg flex-1 border border-slate-700 flex flex-col">
+                            <h3 className="font-bold text-green-400 mb-2 text-sm uppercase">2. Identify Layers</h3>
+                            <p className="text-xs text-slate-400 mb-4">Click a tag below, then click the correct ring on the map.</p>
+                            <div className="flex flex-col gap-2 mb-4">
+                                {["Crust", "Mantle", "Outer Core", "Inner Core"].map(label => (
+                                    <button key={label} onClick={() => handleToolSelect(label)} className={`p-3 rounded text-left flex justify-between items-center transition-all ${selectedTool === label ? 'bg-blue-600 text-white border-2 border-blue-400' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'}`}>
+                                        <span>{label}</span>
+                                        {selectedTool === label && <MousePointer width={16} height={16} />}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="mt-auto">
+                                <button onClick={checkCompletion} className="w-full py-4 bg-green-600 hover:bg-green-500 rounded font-bold text-white shadow-lg shadow-green-900/50">SUBMIT MAP</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        const QuizGate = ({ gameId, onPass, onCancel }) => {
-            const [questions, setQuestions] = useState([]);
-            const [currentIndex, setCurrentIndex] = useState(0);
-            const [score, setScore] = useState(0);
-            const [showResult, setShowResult] = useState(false);
-            const [selectedAnswer, setSelectedAnswer] = useState(null);
+        // GAME 2: Magma Miner (Galaga Style + Slower)
+        const MagmaMiner = ({ onEnd }) => {
+            const [depth, setDepth] = useState(0);
+            const [samples, setSamples] = useState(0);
+            const [health, setHealth] = useState(100);
+            const [gameOver, setGameOver] = useState(false);
+            const [drillX, setDrillX] = useState(50); // % position
+            const requestRef = useRef();
+            const speedRef = useRef(0.4); // SLOWER BASE SPEED (0.4)
+            const [obstacles, setObstacles] = useState([]);
 
             useEffect(() => {
-                const pool = QUESTION_BANK[gameId] || QUESTION_BANK.game2;
-                const shuffledQs = [...pool].sort(() => 0.5 - Math.random()).slice(0, 5);
+                const handleKeyDown = (e) => {
+                    if (e.key === 'ArrowLeft') setDrillX(prev => Math.max(10, prev - 5));
+                    if (e.key === 'ArrowRight') setDrillX(prev => Math.min(90, prev + 5));
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, []);
+
+            const gameLoop = () => {
+                if (gameOver) return;
+                setDepth(prev => prev + speedRef.current);
                 
-                const processed = shuffledQs.map(q => {
-                    return {
-                        q: q.q,
-                        correctStr: q.correct,
-                        a: shuffleArray([...q.a]) 
-                    };
+                // Spawn
+                if (Math.random() < 0.08) {
+                    setObstacles(prev => [
+                        ...prev, 
+                        { 
+                            id: Math.random(), 
+                            x: Math.random() * 90 + 5, 
+                            y: 100, // Bottom
+                            type: Math.random() > 0.8 ? 'sample' : 'rock' 
+                        }
+                    ]);
+                }
+
+                // Move & Track
+                setObstacles(prev => {
+                    return prev.map(o => {
+                        let newY = o.y - (0.6 + speedRef.current); // Slower vertical movement
+                        
+                        // Galaga-style drift: Track player if further away
+                        let newX = o.x;
+                        if (o.type === 'rock' && newY > 30) {
+                            if (drillX > o.x) newX += 0.12; // Slow tracking
+                            else if (drillX < o.x) newX -= 0.12;
+                        }
+
+                        return { ...o, y: newY, x: newX };
+                    }).filter(o => o.y > -10);
                 });
 
-                setQuestions(processed);
-            }, [gameId]);
+                // Collision
+                setObstacles(prev => prev.filter(o => {
+                    const verticalHit = Math.abs(o.y - 20) < 5;
+                    const horizontalHit = Math.abs(o.x - drillX) < 8;
 
-            const handleAnswer = (ansStr, index) => {
-                setSelectedAnswer(index);
-                setTimeout(() => {
-                    if (ansStr === questions[currentIndex].correctStr) {
-                        setScore(s => s + 1);
+                    if (verticalHit && horizontalHit) {
+                        if (o.type === 'rock') {
+                            setHealth(h => Math.max(0, h - 25));
+                        } else {
+                            setSamples(s => s + 1);
+                        }
+                        return false;
                     }
-                    
-                    if (currentIndex < 4) {
-                        setCurrentIndex(c => c + 1);
-                        setSelectedAnswer(null);
-                    } else {
-                        setShowResult(true);
-                    }
-                }, 800);
+                    return true;
+                }));
+
+                if (health <= 0) {
+                    setGameOver(true);
+                } else {
+                    requestRef.current = requestAnimationFrame(gameLoop);
+                }
             };
 
-            const passed = score >= 3;
+            useEffect(() => {
+                if (!gameOver) requestRef.current = requestAnimationFrame(gameLoop);
+                return () => cancelAnimationFrame(requestRef.current);
+            }, [gameOver, health]);
 
-            if (questions.length === 0) return <div className="text-white text-center p-10">Loading Security Protocol...</div>;
+            useEffect(() => {
+                speedRef.current = 0.4 + (depth / 2000); // Slower ramp up
+            }, [depth]);
+
+            if (gameOver) {
+                const finalScore = Math.floor(depth + (samples * 50));
+                return (
+                    <div className="flex flex-col items-center justify-center h-full bg-black text-red-500">
+                        <h1 className="text-6xl font-black mb-4">CRITICAL FAILURE</h1>
+                        <div className="text-center text-white mb-8">
+                            <p className="text-2xl">Depth Reached: {Math.floor(depth)}m</p>
+                            <p className="text-2xl">Samples: {samples}</p>
+                            <div className="mt-6 p-4 bg-slate-800 rounded-xl border-2 border-yellow-500">
+                                <p className="text-sm uppercase tracking-widest text-slate-400">Final Score</p>
+                                <p className="text-6xl font-mono text-yellow-400 font-bold">{finalScore}</p>
+                            </div>
+                        </div>
+                        <button onClick={() => onEnd(finalScore)} className="px-8 py-3 bg-white text-black font-bold rounded hover:bg-gray-200">Return to Base</button>
+                    </div>
+                );
+            }
 
             return (
-                <div className="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
-                    <div className="max-w-xl w-full bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 relative overflow-hidden animate-in">
-                        <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
-                            <div className="flex items-center gap-2">
-                                <Icon name="Lock" className="w-5 h-5 text-amber-500" />
-                                <span className="font-mono text-amber-500 font-bold">SECURITY CLEARANCE</span>
-                            </div>
-                            <div className="text-slate-500 text-xs">PROTOCOL {gameId.toUpperCase()}</div>
+                <div className="relative h-full bg-slate-900 overflow-hidden border-4 border-slate-700 cursor-none">
+                    <div className="absolute top-0 left-0 right-0 p-4 flex justify-between bg-black/50 text-white z-10 font-mono">
+                        <span>DEPTH: {Math.floor(depth)}m</span>
+                        <span className="text-green-400">SAMPLES: {samples}</span>
+                        <span className={`${health < 40 ? 'text-red-500 animate-pulse' : 'text-blue-400'}`}>HULL: {health}%</span>
+                    </div>
+
+                    <div className="absolute top-0 bottom-0 w-1 bg-white/5 left-1/2 transform -translate-x-1/2"></div>
+                    
+                    <div className="absolute transition-transform duration-75 ease-linear" style={{ top: '20%', left: `${drillX}%`, transform: 'translateX(-50%)' }}>
+                        <div className="w-0 h-0 border-l-[15px] border-l-transparent border-r-[15px] border-r-transparent border-t-[30px] border-t-yellow-400 drop-shadow-[0_0_10px_rgba(255,255,0,0.8)]"></div>
+                    </div>
+
+                    {obstacles.map(o => (
+                        <div key={o.id} className={`absolute w-10 h-10 rounded-full flex items-center justify-center font-bold text-[10px] shadow-xl ${o.type === 'rock' ? 'bg-gray-600 border-2 border-gray-400' : 'bg-green-500 border-2 border-white animate-pulse'}`}
+                            style={{ top: `${o.y}%`, left: `${o.x}%`, transform: 'translateX(-50%)' }}>
+                            {o.type === 'rock' ? 'ROCK' : '$'}
                         </div>
+                    ))}
+                    
+                    <div className="absolute inset-0 -z-10 opacity-30 pointer-events-none" style={{ background: `linear-gradient(to bottom, #3e2723 0%, #b71c1c 40%, #ff6f00 80%, #ffd600 100%)`, backgroundPosition: `0 -${depth % 1000}px` }} />
+                </div>
+            );
+        };
 
-                        {!showResult ? (
-                            <>
-                                <div className="mb-2 flex justify-between text-xs text-slate-400 uppercase font-bold">
-                                    <span>Question {currentIndex + 1} of 5</span>
-                                    <span>Req: 3/5 Correct</span>
-                                </div>
-                                <div className="w-full bg-slate-800 h-1 rounded mb-6">
-                                    <div className="bg-amber-500 h-1 rounded transition-all" style={{ width: `${((currentIndex)/5)*100}%` }} />
-                                </div>
+        // GAME 3: Convection Commander
+        const ConvectionCommander = ({ onEnd }) => {
+            const [cycles, setCycles] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(60);
+            const [particles, setParticles] = useState([]); 
+            const [turbulence, setTurbulence] = useState(false);
 
-                                <h3 className="text-lg font-bold text-white mb-6 min-h-[80px]">{questions[currentIndex].q}</h3>
+            useEffect(() => {
+                const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
+                const spawner = setInterval(() => {
+                    setParticles(prev => [
+                        ...prev, 
+                        { 
+                            id: Math.random(), 
+                            type: Math.random() > 0.5 ? 'hot' : 'cold', 
+                            x: Math.random() * 80 + 10, 
+                            y: 50, 
+                            vx: (Math.random() - 0.5) * 2, 
+                            vy: 0 
+                        }
+                    ]);
+                }, 600); 
 
-                                <div className="space-y-3">
-                                    {questions[currentIndex].a.map((ans, i) => {
-                                        const isSelected = selectedAnswer === i;
-                                        const isCorrect = ans === questions[currentIndex].correctStr;
-                                        const showColor = isSelected; 
+                const wind = setInterval(() => {
+                    if (Math.random() > 0.7) {
+                        setTurbulence(true);
+                        setTimeout(() => setTurbulence(false), 2000);
+                    }
+                }, 5000);
 
-                                        let btnClass = 'bg-slate-800 border-slate-700 hover:bg-slate-750';
-                                        if (showColor && isCorrect) btnClass = 'bg-emerald-900/50 border-emerald-500 text-emerald-200';
-                                        if (showColor && !isCorrect) btnClass = 'bg-red-900/50 border-red-500 text-red-200';
+                return () => { clearInterval(timer); clearInterval(spawner); clearInterval(wind); };
+            }, []);
 
-                                        return (
-                                            <button
-                                                key={i}
-                                                onClick={() => selectedAnswer === null && handleAnswer(ans, i)}
-                                                className={`w-full p-4 text-left rounded-lg border transition-all cursor-pointer ${btnClass} ${selectedAnswer !== null && !isSelected ? 'opacity-50' : ''}`}
-                                            >
-                                                <span className="font-mono mr-3 text-slate-500">{String.fromCharCode(65 + i)}.</span>
-                                                {ans}
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-                            </>
-                        ) : (
-                            <div className="text-center py-8">
-                                {passed ? (
-                                    <>
-                                        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Icon name="CheckCircle" className="w-10 h-10 text-emerald-400" />
-                                        </div>
-                                        <h2 className="text-2xl font-bold text-white mb-2">ACCESS GRANTED</h2>
-                                        <p className="text-emerald-400 font-mono mb-6">SCORE: {score}/5</p>
-                                        <button onClick={onPass} className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg border-none cursor-pointer">
-                                            PROCEED TO MISSION
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Icon name="XCircle" className="w-10 h-10 text-red-400" />
-                                        </div>
-                                        <h2 className="text-2xl font-bold text-white mb-2">ACCESS DENIED</h2>
-                                        <p className="text-red-400 font-mono mb-6">SCORE: {score}/5</p>
-                                        <div className="flex gap-2">
-                                            <button onClick={onCancel} className="flex-1 py-3 bg-slate-800 text-slate-400 font-bold rounded-lg hover:bg-slate-700 border-none cursor-pointer">
-                                                MENU
-                                            </button>
-                                            <button onClick={() => { setScore(0); setCurrentIndex(0); setShowResult(false); }} className="flex-1 py-3 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-500 border-none cursor-pointer">
-                                                RETRY
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
+            useEffect(() => {
+                const loop = setInterval(() => {
+                    if (timeLeft <= 0) return;
+                    
+                    setParticles(prev => prev.map(p => {
+                        let newY = p.y + p.vy;
+                        let newX = p.x + p.vx;
+                        
+                        if (turbulence) newX += (Math.random() > 0.5 ? 2 : -2);
+                        if (p.vy === 0) newX += (Math.random() - 0.5) * 1.5;
+
+                        if (newY < 5) { 
+                            if (p.type === 'hot') { setCycles(c => c + 1); return null; }
+                            else { setCycles(c => Math.max(0, c - 2)); return null; } 
+                        }
+                        if (newY > 95) { 
+                            if (p.type === 'cold') { setCycles(c => c + 1); return null; }
+                            else { setCycles(c => Math.max(0, c - 2)); return null; }
+                        }
+                        return { ...p, x: newX, y: newY };
+                    }).filter(Boolean));
+                }, 30);
+                return () => clearInterval(loop);
+            }, [timeLeft, turbulence]);
+
+            const handleParticleClick = (id, type) => {
+                setParticles(prev => prev.map(p => {
+                    if (p.id !== id) return p;
+                    return { ...p, vy: type === 'hot' ? -3 : 3, clicked: true }; 
+                }));
+            };
+
+            if (timeLeft <= 0) {
+                return (
+                    <div className="flex flex-col items-center justify-center h-full bg-slate-900 text-white">
+                        <h1 className="text-4xl font-bold mb-4">Simulation Ended</h1>
+                        <div className="mt-6 p-4 bg-slate-800 rounded-xl border-2 border-orange-500 mb-6">
+                            <p className="text-sm uppercase tracking-widest text-slate-400">Convection Efficiency</p>
+                            <p className="text-6xl font-mono text-orange-400 font-bold">{cycles}</p>
+                        </div>
+                        <button onClick={() => onEnd(cycles)} className="px-8 py-3 bg-blue-600 rounded hover:bg-blue-500 font-bold">Record Score</button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className={`h-full bg-slate-800 relative overflow-hidden select-none cursor-crosshair ${turbulence ? 'animate-shake' : ''}`}>
+                    <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-orange-900 to-transparent pointer-events-none z-0"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-red-900 to-transparent pointer-events-none z-0"></div>
+                    <div className="absolute top-4 left-4 text-white font-mono text-xl z-10">CYCLES: {cycles}</div>
+                    <div className="absolute top-4 right-4 text-white font-mono text-xl z-10">TIME: {timeLeft}s</div>
+                    
+                    {turbulence && (
+                        <div className="absolute inset-0 flex items-center justify-center text-red-500 font-black text-6xl opacity-20 pointer-events-none z-0">
+                            TURBULENCE DETECTED <Wind width={64} height={64} className="ml-4" />
+                        </div>
+                    )}
+
+                    {particles.map(p => (
+                        <div key={p.id} onMouseDown={() => handleParticleClick(p.id, p.type)}
+                            className={`absolute w-12 h-12 rounded-full flex items-center justify-center shadow-lg transform transition-transform active:scale-90 cursor-pointer
+                                ${p.type === 'hot' ? 'bg-red-500 border-2 border-orange-300' : 'bg-blue-500 border-2 border-cyan-300'}
+                                ${p.clicked ? 'opacity-50' : 'animate-bounce-slow'} `}
+                            style={{ top: `${p.y}%`, left: `${p.x}%` }}>
+                            {p.type === 'hot' ? 'HOT' : 'COLD'}
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+
+        // GAME 4: Core Sorter
+        const CoreSorter = ({ onEnd }) => {
+            const [score, setScore] = useState(0);
+            const [timeLeft, setTimeLeft] = useState(45);
+            const [currentItem, setCurrentItem] = useState(null);
+            
+            const items = useMemo(() => [
+                { name: "Granite", cat: "Crust" },
+                { name: "Basalt", cat: "Crust" },
+                { name: "Obsidian", cat: "Crust" }, 
+                { name: "Tectonic Plate", cat: "Crust" }, 
+                { name: "Pumice", cat: "Crust" }, 
+                { name: "Molten Rock", cat: "Mantle" },
+                { name: "Magnesium", cat: "Mantle" },
+                { name: "Olivine", cat: "Mantle" }, 
+                { name: "Diamonds", cat: "Mantle" }, 
+                { name: "Peridotite", cat: "Mantle" }, 
+                { name: "Liquid Iron", cat: "Core" },
+                { name: "Solid Nickel", cat: "Core" },
+                { name: "Sulfur", cat: "Core" }, 
+                { name: "Meteorites", cat: "Core" }, 
+                { name: "Iron Alloy", cat: "Core" }, 
+            ], []);
+
+            const spawnItem = () => {
+                const item = items[Math.floor(Math.random() * items.length)];
+                setCurrentItem(item);
+            };
+
+            useEffect(() => {
+                spawnItem();
+                const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            const handleSort = (category) => {
+                if (currentItem.cat === category) {
+                    setScore(s => s + 100);
+                } else {
+                    setScore(s => Math.max(0, s - 50));
+                }
+                spawnItem();
+            };
+
+            if (timeLeft <= 0) {
+                return (
+                    <div className="flex flex-col items-center justify-center h-full bg-slate-800 text-white">
+                        <h1 className="text-4xl font-bold mb-4">Sorting Complete</h1>
+                        <div className="mt-6 p-4 bg-slate-700 rounded-xl border-2 border-purple-500 mb-6">
+                            <p className="text-sm uppercase tracking-widest text-slate-400">Total Score</p>
+                            <p className="text-6xl font-mono text-purple-400 font-bold">{score}</p>
+                        </div>
+                        <button onClick={() => onEnd(score)} className="px-8 py-3 bg-purple-600 rounded hover:bg-purple-500 font-bold">Finish Work</button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex flex-col h-full bg-slate-900 p-4">
+                    <div className="flex justify-between text-white font-mono text-2xl mb-8">
+                        <span>SCORE: {score}</span>
+                        <span>TIME: {timeLeft}</span>
+                    </div>
+
+                    <div className="flex-1 flex items-center justify-center mb-12">
+                        {currentItem && (
+                            <div className="w-64 h-64 bg-white rounded-xl flex flex-col items-center justify-center shadow-2xl animate-pulse text-slate-900">
+                                <Layers width={64} height={64} className="mb-4 text-slate-500" />
+                                <h2 className="text-3xl font-black text-center">{currentItem.name}</h2>
                             </div>
                         )}
                     </div>
-                </div>
-            );
-        };
 
-        const MainMenu = ({ user, onSelectGame }) => {
-            return (
-                <div className="min-h-screen bg-slate-950 text-white p-4 pb-20 font-sans">
-                    <header className="flex justify-between items-center mb-8 pt-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full border border-slate-600 overflow-hidden bg-slate-800">
-                                <img src="IMG_0024.png" alt="Logo" className="w-full h-full object-cover" onError={(e) => {e.target.style.display='none'; e.target.parentNode.innerHTML='SS'}} />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-black text-emerald-400 tracking-wider">GEO-LAB</h2>
-                                <p className="text-xs text-slate-500 font-mono">AGENT ID: {user.initials}</p>
-                            </div>
-                        </div>
-                        {/* THE LEADERBOARD BUTTON IS BACK HERE */}
-                        <button onClick={() => onSelectGame('leaderboard')} className="p-2 bg-slate-900 rounded-lg hover:bg-slate-800 border border-slate-800 shadow-sm transition-all group">
-                            <Icon name="Award" className="w-6 h-6 text-yellow-500 group-hover:scale-110 transition-transform" />
-                        </button>
-                    </header>
-
-                    <div className="grid gap-6 max-w-4xl mx-auto md:grid-cols-3">
-                        {/* GAME 1 */}
-                        <div onClick={() => onSelectGame('game1')} className={`relative p-6 rounded-2xl border-2 transition-all cursor-pointer group overflow-hidden md:col-span-3 ${user.game1Complete ? 'bg-slate-900 border-emerald-900' : 'bg-gradient-to-br from-indigo-900 to-slate-900 border-indigo-500 shadow-xl shadow-indigo-500/20'}`}>
-                            <div className="flex justify-between items-start z-10 relative">
-                                <div>
-                                    <div className="inline-flex items-center px-2 py-1 rounded bg-indigo-500/20 text-indigo-300 text-xs font-bold mb-2 tracking-wider">
-                                        <Icon name="Database" className="w-3 h-3 mr-1" /> PHASE 1: INQUIRY
-                                    </div>
-                                    <h3 className="text-2xl font-bold mb-1">Project Deep Dive</h3>
-                                    <p className="text-sm text-slate-400">Drill deep and analyze real-time Earth data.</p>
-                                </div>
-                                {user.game1Complete ? <Icon name="CheckCircle" className="w-8 h-8 text-emerald-500" /> : <Icon name="Play" className="w-8 h-8 text-indigo-400 animate-pulse" />}
-                            </div>
-                            {!user.game1Complete && (
-                                <div className="mt-4 flex gap-2">
-                                    <span className="text-xs bg-black/40 px-2 py-1 rounded text-indigo-200 border border-indigo-500/30">REQUIRED TO UNLOCK ARCADE</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* ARCADE GAMES */}
-                        <button disabled={!user.game1Complete} onClick={() => onSelectGame('game2')} className={`p-5 rounded-xl border-b-4 text-left transition-all h-full relative overflow-hidden group ${!user.game1Complete ? 'bg-slate-900/50 border-slate-800 opacity-50 cursor-not-allowed grayscale' : 'bg-slate-800 border-purple-900 hover:border-purple-500 hover:bg-slate-750 active:translate-y-1 active:border-b-0'}`}>
-                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                <Icon name="BrainCircuit" className="w-16 h-16" />
-                            </div>
-                            <Icon name="Activity" className={`w-8 h-8 mb-3 ${user.game1Complete ? 'text-purple-400' : 'text-slate-600'}`} />
-                            <h4 className="font-bold text-lg text-slate-200">Seismic Sorter</h4>
-                            <p className="text-xs text-slate-500 mt-1">Classification: P vs S Waves</p>
-                        </button>
-
-                        <button disabled={!user.game1Complete} onClick={() => onSelectGame('game3')} className={`p-5 rounded-xl border-b-4 text-left transition-all h-full relative overflow-hidden group ${!user.game1Complete ? 'bg-slate-900/50 border-slate-800 opacity-50 cursor-not-allowed grayscale' : 'bg-slate-800 border-orange-900 hover:border-orange-500 hover:bg-slate-750 active:translate-y-1 active:border-b-0'}`}>
-                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                <Icon name="Wind" className="w-16 h-16" />
-                            </div>
-                            <Icon name="Wind" className={`w-8 h-8 mb-3 ${user.game1Complete ? 'text-orange-400' : 'text-slate-600'}`} />
-                            <h4 className="font-bold text-lg text-slate-200">Mantle Surfer</h4>
-                            <p className="text-xs text-slate-500 mt-1">Convection & Density</p>
-                        </button>
-
-                        <button disabled={!user.game1Complete} onClick={() => onSelectGame('game4')} className={`p-5 rounded-xl border-b-4 text-left transition-all h-full relative overflow-hidden group ${!user.game1Complete ? 'bg-slate-900/50 border-slate-800 opacity-50 cursor-not-allowed grayscale' : 'bg-slate-800 border-blue-900 hover:border-blue-500 hover:bg-slate-750 active:translate-y-1 active:border-b-0'}`}>
-                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                <Icon name="Layers" className="w-16 h-16" />
-                            </div>
-                            <Icon name="Layers" className={`w-8 h-8 mb-3 ${user.game1Complete ? 'text-blue-400' : 'text-slate-600'}`} />
-                            <h4 className="font-bold text-lg text-slate-200">Crust Collector</h4>
-                            <p className="text-xs text-slate-500 mt-1">Mineral Identification</p>
-                        </button>
+                    <div className="grid grid-cols-3 gap-4 h-32">
+                        <button onClick={() => handleSort('Crust')} className="bg-amber-700 hover:bg-amber-600 text-white rounded-xl font-bold text-2xl border-b-4 border-amber-900 active:border-b-0 active:translate-y-1 transition-all">CRUST</button>
+                        <button onClick={() => handleSort('Mantle')} className="bg-red-700 hover:bg-red-600 text-white rounded-xl font-bold text-2xl border-b-4 border-red-900 active:border-b-0 active:translate-y-1 transition-all">MANTLE</button>
+                        <button onClick={() => handleSort('Core')} className="bg-yellow-600 hover:bg-yellow-500 text-white rounded-xl font-bold text-2xl border-b-4 border-yellow-800 active:border-b-0 active:translate-y-1 transition-all">CORE</button>
                     </div>
                 </div>
             );
         };
 
-        // --- PLACEHOLDER FOR THE GAMES & APP LOGIC THAT WERE CUT OFF IN YOUR PASTE ---
-        // I have added these below so the file runs, but they are generic wrappers 
-        // connected to the MainMenu you provided above.
+        const GeologyGame = () => {
+            const [view, setView] = useState('HOME'); 
+            const [game1Unlocked, setGame1Unlocked] = useState(false); 
+            const [scores, setScores] = useState({ g2: 0, g3: 0, g4: 0 });
 
-        const GamePlaceholder = ({ id, onComplete }) => (
-            <div className="h-screen bg-slate-900 flex flex-col items-center justify-center text-center p-6">
-                <h2 className="text-2xl font-bold mb-4">Simulation: {id}</h2>
-                <p className="text-slate-400 mb-8">This part of the code was cut off in your original message.</p>
-                <button onClick={onComplete} className="px-6 py-3 bg-emerald-600 rounded-lg font-bold">COMPLETE MISSION</button>
-            </div>
-        );
+            const goHome = () => setView('HOME');
 
-        const App = () => {
-            const [view, setView] = useState('intro');
-            const [user, setUser] = useState({ initials: '', game1Complete: false });
-            const [activeGame, setActiveGame] = useState(null);
-
-            const handleStart = (initials) => {
-                setUser({ ...user, initials });
-                setView('menu');
-            };
-
-            const handleSelectGame = (gameId) => {
-                // If they click the leaderboard button you wanted back
-                if (gameId === 'leaderboard') {
-                    alert("Leaderboard module is currently offline (as per previous status).");
-                    return;
+            const renderContent = () => {
+                switch (view) {
+                    case 'HOME':
+                        return (
+                            <div className="h-full flex flex-col items-center justify-center bg-slate-900 text-white p-8 space-y-8">
+                                <div className="text-center">
+                                    <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500 mb-2">DEEP EARTH INITIATIVE</h1>
+                                    <p className="text-slate-400 text-xl tracking-widest">CLOVER SC // GEOLOGY TRAINING</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-6 w-full max-w-4xl">
+                                    <button onClick={() => setView('GAME1')} className={`col-span-2 p-8 rounded-xl border-2 flex items-center justify-between transition-all group ${game1Unlocked ? 'bg-green-900/30 border-green-500' : 'bg-blue-900/30 border-blue-500 hover:bg-blue-900/50'}`}>
+                                        <div className="text-left"><h3 className="text-2xl font-bold text-white flex items-center gap-2"><Activity /> Seismic Scanner (Inquiry)</h3><p className="text-slate-400">Mission: Map the interior using wave data. Complete this first.</p></div>
+                                        {game1Unlocked && <CheckCircle className="text-green-500" width={32} height={32} />}
+                                    </button>
+                                    <button disabled={!game1Unlocked} onClick={() => setView('G2_QUIZ')} className={`p-6 rounded-xl border-2 text-left relative overflow-hidden ${!game1Unlocked ? 'opacity-50 cursor-not-allowed border-slate-700 bg-slate-800' : 'bg-slate-800 border-yellow-600 hover:scale-105 transition-transform'}`}>
+                                        <div className="relative z-10"><h3 className="text-xl font-bold text-yellow-500 mb-2 flex gap-2"><ArrowDown /> Magma Miner</h3><p className="text-sm text-slate-300">Drill deep. Dodge moving rocks.</p>{scores.g2 > 0 && <p className="mt-2 text-green-400 font-mono">High Score: {scores.g2}</p>}</div>
+                                        {!game1Unlocked && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><AlertTriangle /></div>}
+                                    </button>
+                                    <button disabled={!game1Unlocked} onClick={() => setView('G3_QUIZ')} className={`p-6 rounded-xl border-2 text-left relative overflow-hidden ${!game1Unlocked ? 'opacity-50 cursor-not-allowed border-slate-700 bg-slate-800' : 'bg-slate-800 border-orange-600 hover:scale-105 transition-transform'}`}>
+                                        <div className="relative z-10"><h3 className="text-xl font-bold text-orange-500 mb-2 flex gap-2"><RotateCcw /> Convection Cmdr</h3><p className="text-sm text-slate-300">Manage heat flow. Avoid turbulence.</p>{scores.g3 > 0 && <p className="mt-2 text-green-400 font-mono">High Score: {scores.g3}</p>}</div>
+                                        {!game1Unlocked && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><AlertTriangle /></div>}
+                                    </button>
+                                    <button disabled={!game1Unlocked} onClick={() => setView('G4_QUIZ')} className={`p-6 rounded-xl border-2 text-left relative overflow-hidden ${!game1Unlocked ? 'opacity-50 cursor-not-allowed border-slate-700 bg-slate-800' : 'bg-slate-800 border-purple-600 hover:scale-105 transition-transform'}`}>
+                                        <div className="relative z-10"><h3 className="text-xl font-bold text-purple-500 mb-2 flex gap-2"><Layers /> Core Sorter</h3><p className="text-sm text-slate-300">Classify rocks & minerals rapidly.</p>{scores.g4 > 0 && <p className="mt-2 text-green-400 font-mono">High Score: {scores.g4}</p>}</div>
+                                        {!game1Unlocked && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><AlertTriangle /></div>}
+                                    </button>
+                                </div>
+                                <div className="text-xs text-slate-600 mt-8 max-w-md text-center">Instructions: Complete the Seismic Scan to verify your credentials. Then, complete the security quizzes to access the advanced machinery simulations.</div>
+                            </div>
+                        );
+                    case 'GAME1': return <SeismicScanner onComplete={() => { setGame1Unlocked(true); goHome(); }} />;
+                    case 'G2_QUIZ': return <QuizGate gameTitle="Magma Drill" questionBank={Q_BANK_MINER} onPass={() => setView('G2_INST')} onCancel={goHome} />;
+                    case 'G2_INST': return <Instructions title="Magma Miner Operations" content={["1. You are piloting a thermal drill into the crust.", "2. Use LEFT and RIGHT ARROW KEYS to steer.", "3. Rocks now DRIFT towards your position - stay alert!", "4. Aim for Green Samples ($$$) to boost score.", "5. Hitting rocks damages hull.", "6. Score = Depth + Samples."]} onStart={() => setView('G2_PLAY')} />;
+                    case 'G2_PLAY': return <MagmaMiner onEnd={(score) => { setScores(s => ({...s, g2: Math.max(s.g2, score)})); goHome(); }} />;
+                    case 'G3_QUIZ': return <QuizGate gameTitle="Convection Simulator" questionBank={Q_BANK_CONVECTION} onPass={() => setView('G3_INST')} onCancel={goHome} />;
+                    case 'G3_INST': return <Instructions title="Convection Protocols" content={["1. Heat drives the mantle's movement.", "2. Particles will float in the chamber.", "3. CLICK Red (Hot) particles to make them RISE.", "4. CLICK Blue (Cold) particles to make them SINK.", "5. WARNING: Random TURBULENCE will knock particles off course.", "6. Speed increases over time."]} onStart={() => setView('G3_PLAY')} />;
+                    case 'G3_PLAY': return <ConvectionCommander onEnd={(score) => { setScores(s => ({...s, g3: Math.max(s.g3, score)})); goHome(); }} />;
+                    case 'G4_QUIZ': return <QuizGate gameTitle="Core Sorter" questionBank={Q_BANK_CORE} onPass={() => setView('G4_INST')} onCancel={goHome} />;
+                    case 'G4_INST': return <Instructions title="Sorting Facility" content={["1. Materials from the interior are arriving on the belt.", "2. Identify the material shown (includes extension materials).", "3. Click CRUST, MANTLE, or CORE to route it correctly.", "4. Speed is key. Incorrect sorts lose points.", "5. Aim for the highest score in 45 seconds."]} onStart={() => setView('G4_PLAY')} />;
+                    case 'G4_PLAY': return <CoreSorter onEnd={(score) => { setScores(s => ({...s, g4: Math.max(s.g4, score)})); goHome(); }} />;
+                    default: return <div>Error</div>;
                 }
-                setActiveGame(gameId);
-                // If game1, go direct, else quiz
-                if (gameId === 'game1') setView('game');
-                else setView('quiz');
             };
 
-            return (
-                <div className="w-full h-full">
-                    {view === 'intro' && <IntroScreen onStart={handleStart} />}
-                    {view === 'menu' && <MainMenu user={user} onSelectGame={handleSelectGame} />}
-                    {view === 'quiz' && (
-                        <QuizGate 
-                            gameId={activeGame} 
-                            onPass={() => setView('game')} 
-                            onCancel={() => setView('menu')} 
-                        />
-                    )}
-                    {view === 'game' && (
-                        <GamePlaceholder 
-                            id={activeGame} 
-                            onComplete={() => {
-                                if (activeGame === 'game1') setUser(u => ({ ...u, game1Complete: true }));
-                                setView('menu');
-                            }} 
-                        />
-                    )}
-                </div>
-            );
+            return <div className="w-full h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">{renderContent()}</div>;
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        root.render(<GeologyGame />);
     </script>
 </body>
 </html>
